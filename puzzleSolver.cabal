@@ -1,0 +1,32 @@
+cabal-version:       2.2
+name:                puzzleSolver
+version:             0.1.0.0
+synopsis:            Homework assignment for CIS 5520
+homepage:            https://github.com/sgalban/PuzzleSolver
+license-file:        LICENSE
+build-type:          Simple
+
+
+common common-stanza
+  ghc-options:         -Wincomplete-patterns -Wno-orphans -Wno-unused-imports -Wno-noncanonical-monad-instances
+  build-depends:       base 
+                     , QuickCheck 
+                     , containers 
+                     , HUnit 
+                     , random
+                     , pretty 
+  default-language:    GHC2021
+
+library
+  import: common-stanza
+  exposed-modules:
+ hs-source-dirs: src
+
+executable puzzleSolver
+  import: common-stanza
+  main-is:             Main.hs
+  other-modules:
+  hs-source-dirs: src
+  build-depends: puzzleSolver
+
+

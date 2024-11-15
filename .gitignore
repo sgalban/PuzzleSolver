@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+$ Other
+.vscode/
+.stack-work/
+# Maybe don't ignore the stack lock?
+stack.yaml.lock
