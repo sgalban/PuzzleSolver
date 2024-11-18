@@ -3,7 +3,6 @@ name:                puzzleSolver
 version:             0.1.0.0
 synopsis:            Homework assignment for CIS 5520
 homepage:            https://github.com/sgalban/PuzzleSolver
-license-file:        LICENSE
 build-type:          Simple
 
 
@@ -20,6 +19,11 @@ common common-stanza
 library
   import: common-stanza
   exposed-modules:
+                       Puzzle,
+                       PuzzleSolver,
+                       PuzzleParser,
+                       PuzzleCLI
+
  hs-source-dirs: src
 
 executable puzzleSolver
