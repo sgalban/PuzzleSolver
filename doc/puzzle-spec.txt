@@ -94,8 +94,7 @@ unconstrainedCells := "unconstrained"
     (uniqueConstraint |
     addsToConstraint |
     always |
-    never),
-    "in", cell
+    never)
 
 # A constraint that is satisfied if all affected cells contain unqiue numbers
 # within the given range. A constraint of this form is unsatisfiable if it
@@ -106,10 +105,16 @@ unconstrainedCells := "unconstrained"
 # to the specified total
 <addsToConstraint> := "addsTo", "(", numExp, ")"
 
-# The union of several primitivec onstraints. Where order matters, they're
+# The union of several primitive constraints. Where order matters, they're
 # applied from left to right
 <constraintList> := "primitiveConstraint", "[",
     [ primitiveConstraint, { ",", primitiveConstraint } ] "]"
+
+# A constraint that's always satisfied.
+<always> = "always"
+
+# A constraint that's never satisfied. Can be used for debugging purposes.
+<never> = "never"
 
 # Applies a constraint iteratively. The body of a repeat block can contain
 # numerical expressions that use non-zero variables. In particular, if a

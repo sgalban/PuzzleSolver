@@ -1,0 +1,16 @@
+grid(4, 4) {
+  repeat(0, 3) {
+    constraint unique(1 to 4) in row $0
+  }
+  repeat(0, 3) {
+    constraint unique(1 to 4) in col $0
+  }
+  repeat(0, 3) {
+    constraint unique(1 to 4) in subgrid((($0 % 2) * 2, ($0 // 2) * 2), 2, 2)
+  }
+
+  init cell(0, 4) with 3
+  init cell(1, 1) with 4
+  init cell(2, 2) with 3
+  init cell(2, 3) with 2
+} 

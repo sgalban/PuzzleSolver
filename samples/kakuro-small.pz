@@ -1,0 +1,17 @@
+grid(4, 4) {
+  constraints [unique(1 to 9), addsTo(15)] in row 0 from 0 to 2
+  constraints [unique(1 to 9),  addsTo(8)] in row 1 from 0 to 2
+  constraints [unique(1 to 9), addsTo(15)] in row 2 from 1 to 3
+  constraints [unique(1 to 9), addsTo(19)] in row 3 from 1 to 3
+
+  constraints [unique(1 to 9), addsTo(11)] in col 0 from 0 to 1
+  constraints [unique(1 to 9), addsTo(16)] in col 1 from 0 to 3
+  constraints [unique(1 to 9), addsTo(17)] in col 2 from 0 to 3
+  constraints [unique(1 to 9), addsTo(13)] in col 3 from 2 to 3
+
+  init cell(0, 2) with 3
+  init cell(1, 1) with 1
+  init cell(2, 2) with 2
+  init cell(3, 1) with 2
+  init unconstrained with 0
+}
