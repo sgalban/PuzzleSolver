@@ -40,7 +40,7 @@
 # The grid defines the puzzle. Note that the top left cell in the grid has the
 # coordinate (0, 0). The first coordinate signifies the row of a cell, and the
 # second signifies its column.
-<grid> := "grid", numPair, "{", { constraint }, "}"
+<grid> := "grid", numPair, "{", { constraints }, "}"
 
 ### CELLS
 
@@ -52,6 +52,7 @@
     cellList |
     cellRowCol |
     cellRect |
+    all |
     unconstrainedCells)
 
 # A single cell from its coordinates on the grid. It's an error for these
@@ -70,7 +71,10 @@
 # Represents a rectangle of cells whose top left cell is at the specified
 # coordinate, and has the specified width and height. It's an error if it
 # extends outside of the main grid.
-<subgrid> := "subgrid", "(", numPair, numExp, numExp, ")"
+<subgrid> := "subgrid", "(", numPair, ",", numExp, "," numExp, ")"
+
+# Represents all the cells in the grid
+<all> = "all"
 
 # Represents all unconstrainted cells at the time this statement appears.
 # In other words, it applies to all cells unaffected by constraints above it in
@@ -93,22 +97,37 @@ unconstrainedCells := "unconstrained"
 <primitiveConstraint> := "constraint",
     (uniqueConstraint |
     addsToConstraint |
+    multToConstraint |
+    greaterThanConstraint |
+    lessThanConstraint |
     always |
     never)
 
 # A constraint that is satisfied if all affected cells contain unqiue numbers
 # within the given range. A constraint of this form is unsatisfiable if it
 # contains more cells than the size of its range.
-<uniqueConstraint> := "unique", numPair
+<uniqueConstraint> := "unique", "(", range, ")"
 
 # A constraint that is satisfied if the numbers in all the affected cells add
 # to the specified total
 <addsToConstraint> := "addsTo", "(", numExp, ")"
 
+# A constraint that is satisfied if the numbers in all the affected cells
+# multiply to the specified total
+<multiplyToConstraint> := "multTo", "(", numExp, ")"
+
 # The union of several primitive constraints. Where order matters, they're
 # applied from left to right
-<constraintList> := "primitiveConstraint", "[",
+<constraintList> := "constraints", "[",
     [ primitiveConstraint, { ",", primitiveConstraint } ] "]"
+
+# A constraint that is satisfied if all the affected cells contain a value
+# greater than the cell at the specified coordinates.
+<greaterThanConstraint> := "greaterThan", numPair
+
+# A constraint that is satisfied if all the affected cells contain a value
+# less than the cell at the specified coordinates.
+<lessThanConstraint> := "lessThan", numPair
 
 # A constraint that's always satisfied.
 <always> = "always"

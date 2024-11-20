@@ -111,7 +111,6 @@ grid(4, 4) {
     repeat(0, 3) {
         constraint unique(1 to 4) in subgrid((($0 % 2) * 2, ($0 // 2) * 2), 2, 2)
     }
-	
     init cell(0, 4) with 3
     init cell(1, 1) with 4
     init cell(2, 2) with 3
@@ -119,10 +118,7 @@ grid(4, 4) {
 } 
 	\end{verbatim}
 	
-	Then simply use the solve command, followed by the print command to see the output.
-	Similar actions can be taken if the user wishes to solve a Kakuro puzzle or Magic Square.
-	Alternatively, a user can build this puzzle from scratch within the library and convert it into Puzzle code functionally equivalent to that shown.
-	
+	Then simply use the solve command, followed by the print command to see the output. Alternatively, a user can build this puzzle from scratch within the library and convert it into Puzzle code functionally equivalent to that shown. Other types of puzzles that can be modeled by Puzzle code, and are therefore compatible with the library, include but are not limited to, Kakuro, Magic Squares, KenKen, Killer Sudoku, and Futoshiki.
 	\hypertarget{project-architecture}{%
 		\subsection{3. Project architecture}\label{project-architecture}}
 	

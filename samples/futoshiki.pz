@@ -1,0 +1,18 @@
+grid(5, 5) {
+  repeat(0, 4) {
+    constraint unique(1 to 5) in row $0
+  }
+
+  repeat(0, 4) {
+    constraint unique(1 to 5) in col $0
+  }
+
+  constraint greaterThan(0, 1) in cell(0, 0)
+  constraint greaterThan(0, 3) in cell(0, 2)
+  constraint greaterThan(0, 4) in cell(0, 3)
+
+  constraint lessThan(3, 4) in cell(3, 3)
+
+  constraint lessThan(4, 1) in cell(4, 0)
+  constraint lessThan(4, 2) in cell(4, 1)
+}
