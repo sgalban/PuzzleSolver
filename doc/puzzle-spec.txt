@@ -16,7 +16,7 @@
 # parentheses
 <numExp> := number |
     (numExp, bop, numExp) |
-    repearParam |
+    repeatParam |
     "(", numExp, ")"
 
 # Ranges and number pairs are used in specific circumstances
@@ -71,7 +71,7 @@
 # Represents a rectangle of cells whose top left cell is at the specified
 # coordinate, and has the specified width and height. It's an error if it
 # extends outside of the main grid.
-<subgrid> := "subgrid", "(", numPair, ",", numExp, "," numExp, ")"
+<cellRect> := "subgrid", "(", numPair, ",", numExp, "," numExp, ")"
 
 # Represents all the cells in the grid
 <all> = "all"
