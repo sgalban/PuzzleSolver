@@ -1,10 +1,11 @@
 module Puzzle where
 import Data.Map ( Map )
 
-data NumExp =
-  Number Int |
-  Op2 NumExp Bop NumExp |
-  RepeatVar Int
+data NumExp
+  = Number Int
+  | Op2 NumExp Bop NumExp
+  | RepeatVar Int
+  deriving (Show, Eq)
 
 data Bop
   = Plus
@@ -13,28 +14,31 @@ data Bop
   | Divide
   | Modulo
   | Power
+  deriving (Show, Eq)
 
-newtype Range = Range (NumExp, NumExp)
+newtype Range = Range (NumExp, NumExp) deriving(Show, Eq)
 
 data Puzzle = Grid {
   width :: Int,
   height :: Int,
   constraints :: [ConstrainedCells]
-}
+  } deriving(Show, Eq)
 
 data ConstraintRule
   = CellInit CellGroup NumExp
   | CC ConstrainedCells
   | Repeat Range ConstraintRule
+  deriving (Show, Eq)
 
 data ConstrainedCells = ConstrainedCells {
   constraint :: Constraint,
   cellGroup :: CellGroup
-}
+  } deriving (Show, Eq)
 
 data Constraint
   = PC PrimitiveConstraint
   | ConstraintList [Constraint]
+  deriving (Show, Eq)
 
 instance Semigroup Constraint where
   (<>) :: Constraint -> Constraint -> Constraint
@@ -59,6 +63,7 @@ data PrimitiveConstraint
   | LessThan NumExp NumExp
   | Always
   | Never
+  deriving (Show, Eq)
 
 data CellGroup
   = ACell NumExp NumExp
@@ -69,6 +74,7 @@ data CellGroup
   | Inverse CellGroup
   | All
   | Unconstrained
+  deriving (Show, Eq)
 
 instance Semigroup CellGroup where
   (<>) :: CellGroup -> CellGroup -> CellGroup
@@ -86,6 +92,6 @@ instance Monoid CellGroup where
   mempty = CellList []
 
 data PuzzleSolution = PuzzleSolution {
-    puzzle :: Puzzle,
-    cellValues :: Map (Int, Int) Int
-}
+  puzzle :: Puzzle,
+  cellValues :: Map (Int, Int) Int
+  } deriving (Show, Eq)
