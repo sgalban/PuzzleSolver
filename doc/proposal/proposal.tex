@@ -85,8 +85,8 @@
 	Consider the family of number puzzles containing games such as Sudoku, Kakuro, and Magic Squares. While they all have different rules, at their core, they can all be modeled as a grid of numbers subject to certain constraints. This project aims to take advantage of these similarities, generalizing these puzzles into a common framework, and then using that framework to create a general puzzle solver.
 	Specifically, the goal of this project is to create a domain-specific language, Puzzle, that can be used to describe a family of similar grid-based number puzzles (including Sudoku, Kakuro, Magic Squares, and more), and then write a small Haskell library with three primary functions: \begin{enumerate}
 		\item To parse this domain-specific language into a Haskell persistent data structure.
-		\item To create a puzzle from Haskell, and convert it into Puzzle code.
-		\item To compute a solution to an unsolved puzzle described by the DSL (or indicate that no such valid solution exists).
+		\item To convert puzzles back into Puzzle code.
+		\item To determine the solution of an unsolved puzzle (or indicate that no such valid solution exists).
 	\end{enumerate} 
 	This library will be complete with a command-line interface from which users can perform all the functionality described above.
 	
@@ -97,7 +97,7 @@
 	\begin{figure}[H]
 		\includegraphics[width=4cm]{sudoku}
 	\end{figure}
-	To solve this puzzle, the user would first load the following Puzzle file: \begin{verbatim}
+	To solve this puzzle, the user would first load the following Puzzle code: \begin{verbatim}
 grid(4, 4) {
     # Each row has unique entries
     repeat(0, 3) {
@@ -118,20 +118,20 @@ grid(4, 4) {
 } 
 	\end{verbatim}
 	
-	Then simply use the solve command, followed by the print command to see the output. Alternatively, a user can build this puzzle from scratch within the library and convert it into Puzzle code functionally equivalent to that shown. Other types of puzzles that can be modeled by Puzzle code, and are therefore compatible with the library, include but are not limited to, Kakuro, Magic Squares, KenKen, Killer Sudoku, and Futoshiki.
+	then simply use the solve command. Alternatively, a user could build this puzzle from scratch within the library and convert it into the Puzzle code shown (or functionally equivalent code). Other types of puzzles that can be modeled by Puzzle code, and are therefore compatible with the library, include but are not limited to, Kakuro, Magic Squares, KenKen, Killer Sudoku, and Futoshiki.
 	\hypertarget{project-architecture}{%
 		\subsection{3. Project architecture}\label{project-architecture}}
 	
 	This project covers multiple separate domains, and lends itself well to being organized over several modules:\begin{enumerate}
 		\item \textbf{Puzzle}:\\
-		At the core of this project is the \texttt{Puzzle} model, which represents puzzle. That is, it describes the shape of the grid, its initial values, and all the constraints the puzzle is subject to. This module exposes functions that can be used to add, remove, and modify initial values and constraints (persistently, as well as a function to validate the structure of a puzzle, i.e. to ensure that every cell of a puzzle either has an initial value, or is subject to at least one constraint. \texttt{Puzzle} will be an instance of \texttt{Pretty}, its string representation being Puzzle code that could be used to describe the puzzle. This module will also contain a separate method that converts a puzzle into an ASCII representation of the grid.\\
+		At the core of this project is the \texttt{Puzzle} model, which represents both an unsolved puzzle, and parsed Puzzle code. That is, it describes the shape of the grid, its initial values, and all the constraints the puzzle is subject to. This module exposes functions that can be used to add, remove, and modify constraints (persistently), as well as a function to validate the structure of a puzzle, i.e. to ensure that every cell of a puzzle either has an initial value, or is subject to at least one constraint. \texttt{Puzzle} will be an instance of \texttt{Pretty}, its string representation being Puzzle code that could be used to describe the puzzle. This module will also contain a separate method that converts a puzzle into an ASCII representation of the grid.\\
 		Additionally, this module will contain the \texttt{PuzzleSolution} type, which is essentially a pair containing a \texttt{Puzzle}, and a mapping from cell coordinates to values used to fill the cells. This model represents total and partial solutions to the puzzle.
 		\item \textbf{PuzzleSolver}:\\
-		This module handles solving the puzzle. Its primary purpose is to expose two functions: that solves a puzzle, and one that validates a full or partial solution.
+		This module handles solving the puzzle. Its primary purpose is to expose two functions: one that solves a puzzle, and one that validates a full or partial solution.
 		
-		The solver function will accept a \texttt{Puzzle} as input, and output an \texttt{Maybe PuzzleSolution}, containing a complete valid solution (or \texttt{Nothing}, if no valid solution exists). Note that solving many of the puzzles described by this DSL are NP-Complete problems, so the solver will not be particularly fast for larger puzzles, but the implementation may use various techniques to reduce the runtime as much as feasibly possible.
+		The \texttt{solve} function will accept a \texttt{Puzzle} as input, and output an \texttt{Maybe PuzzleSolution}, containing a complete valid solution (or \texttt{Nothing}, if no valid solution exists). Note that solving many of the puzzles described by this DSL are NP-Complete problems, so the solver will not be particularly fast for larger puzzles, but the implementation may use various techniques to reduce the runtime as much as feasibly possible.
 		
-		The validate function takes a \texttt{PuzzleSolution} and returns true if and only if the solution does not violate any of the puzzle's constraints. A fully solved puzzle is a \texttt{PuzzleSolution} containing a value for every cell.
+		The \texttt{validate} function takes a \texttt{PuzzleSolution} and returns true if and only if the solution does not violate any of the puzzle's constraints. A fully solved puzzle is a \texttt{PuzzleSolution} containing a value for every cell.
 		
 		\item \textbf{PuzzleParser}:\\
 		The parser module exposes only one function, \texttt{parsePuzzle}, which accepts a filename for a Puzzle file as input and parses its contents into an \texttt{Either Puzzle}, where the \texttt{Left} case represents parsing errors.
