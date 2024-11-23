@@ -23,7 +23,7 @@ data Puzzle = Grid {
 }
 
 data ConstraintRule
-  = CellInit NumExp NumExp NumExp
+  = CellInit CellGroup NumExp
   | CC ConstrainedCells
   | Repeat Range ConstraintRule
 
