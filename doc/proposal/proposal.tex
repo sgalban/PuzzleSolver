@@ -118,7 +118,7 @@ grid(4, 4) {
 } 
 	\end{verbatim}
 	
-	then simply use the solve command. Alternatively, a user could build this puzzle from scratch within the library and convert it into the Puzzle code shown (or functionally equivalent code). Other types of puzzles that can be modeled by Puzzle code, and are therefore compatible with the library, include but are not limited to, Kakuro, Magic Squares, KenKen, Killer Sudoku, and Futoshiki.
+	then simply use the solve command. Other types of puzzles that can be modeled by Puzzle code, and are therefore compatible with the library, include but are not limited to, Kakuro, Magic Squares, KenKen, Killer Sudoku, and Futoshiki.
 	\hypertarget{project-architecture}{%
 		\subsection{3. Project architecture}\label{project-architecture}}
 	
@@ -150,6 +150,6 @@ grid(4, 4) {
 		\item if any blank cell from an invalid (partial) solution is added, the result should still be invalid.
 	\end{itemize}
 	Additionally, the parser module can contain at least one roundtrip QuickCheck property, ensuring that converting a \texttt{Puzzle} into Puzzle code and parsing it back results in an equivalent \texttt{Puzzle}.
-	Of course, both of these modules will contain plenty of unit tests as well.
+	Furthermore, several sample puzzles and their solutions could be hard-coded (similarly to homework 5), which could be used to unit test both the solver and the parser.
 	
 \end{document}
