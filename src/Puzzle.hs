@@ -1,8 +1,8 @@
 module Puzzle where
-import Data.Map ( Map )
 import Test.QuickCheck (Arbitrary)
 import qualified Test.QuickCheck as QC
 import Control.Monad (liftM2, liftM3)
+import qualified Data.Map as Map
 
 data NumExp
   = Number Int
@@ -24,7 +24,7 @@ newtype Range = Range (NumExp, NumExp) deriving (Show, Eq)
 data Puzzle = Grid {
   width :: Int,
   height :: Int,
-  constraints :: [ConstrainedCells]
+  constraints :: [ConstraintRule]
   } deriving(Show, Eq)
 
 data ConstraintRule
@@ -72,8 +72,8 @@ data CellGroup
   = ACell NumExp NumExp
   | CellList [CellGroup]
   | Subgrid NumExp NumExp NumExp NumExp
-  | Row NumExp (Maybe (NumExp, NumExp))
-  | Col NumExp (Maybe (NumExp, NumExp))
+  | Row NumExp (Maybe Range)
+  | Col NumExp (Maybe Range)
   | Inverse CellGroup
   | All
   | Unconstrained
@@ -99,7 +99,7 @@ isValidPuzzle = undefined
 
 data PuzzleSolution = PuzzleSolution {
   puzzle :: Puzzle,
-  cellValues :: Map (Int, Int) Int
+  cellValues :: Map.Map (Int, Int) Int
   } deriving (Show, Eq)
 
 -- QuickCheck instances
@@ -158,9 +158,9 @@ instance Arbitrary CellGroup where
     return All,
     return Unconstrained]
     where
-      rowColBoundGen :: QC.Gen (Maybe (NumExp, NumExp))
+      rowColBoundGen :: QC.Gen (Maybe Range)
       rowColBoundGen = QC.oneof [
-        Just <$> liftM2 (,) QC.arbitrary QC.arbitrary,
+        Just <$> QC.arbitrary,
         return Nothing]
 
 instance Arbitrary ConstrainedCells where
@@ -188,3 +188,82 @@ instance Arbitrary Puzzle where
 instance Arbitrary PuzzleSolution where
   arbitrary :: QC.Gen PuzzleSolution
   arbitrary = undefined
+
+-- Sample Puzzles and Solutions
+
+-- | Transforms a list of numbers into a grid of numbers, given the width of the
+-- | grid. This will make it easier to define the hardcoded puzzle solutions
+toSolutionMap :: Int -> [a] -> Map.Map (Int, Int) a
+toSolutionMap cols values = Map.fromList (solList values)
+  where
+    solList :: [a] -> [((Int, Int), a)]
+    solList = zipWith (\i v -> ((i `div` cols, i `mod` cols), v)) [0..]
+
+-- | A couple of functions to make hardcoding puzzles less verbose
+
+range :: Int -> Int -> Range
+range a b = Range(Number a, Number b)
+
+cell :: Int -> Int -> CellGroup
+cell a b = ACell (Number a) (Number b)
+
+-- | sudoku-small.pz
+pSudSmall :: Puzzle
+pSudSmall = Grid 4 4 [
+  Repeat (range 0 3) (CC $ ConstrainedCells (PC $ Unique $ range 1 4) (Row (RepeatVar 0) Nothing)),
+  Repeat (range 0 3) (CC $ ConstrainedCells (PC $ Unique $ range 1 4) (Col (RepeatVar 0) Nothing)),
+  Repeat (range 0 1) (Repeat (range 0 1) (CC (ConstrainedCells (PC $ Unique $ range 1 4) (Subgrid (Op2 (RepeatVar 0) Times (Number 2)) (Op2 (RepeatVar 0) Times (Number 2)) (Number 2) (Number 2))))),
+  CellInit (cell 0 3) (Number 3),
+  CellInit (cell 1 1) (Number 4),
+  CellInit (cell 2 2) (Number 3),
+  CellInit (cell 2 3) (Number 2)]
+
+sSudSmall :: PuzzleSolution
+sSudSmall = PuzzleSolution pSudSmall $ toSolutionMap 4 [
+  1, 2, 4, 3,
+  3, 4, 2, 1,
+  4, 1, 3, 2,
+  2, 3, 1, 4]
+
+-- | magicsquare.pz
+pMagSquare :: Puzzle
+pMagSquare = Grid 3 3 [
+  CC $ ConstrainedCells (PC $ Unique (range 1 9)) All,
+  Repeat (range 0 2) (CC $ ConstrainedCells (PC $ AddsTo $ Number 15) (Row (RepeatVar 0) Nothing)),
+  Repeat (range 0 2) (CC $ ConstrainedCells (PC $ AddsTo $ Number 15) (Col (RepeatVar 0) Nothing)),
+  CC $ ConstrainedCells (PC $ AddsTo $ Number 15) (CellList [cell 0 0, cell 1 1, cell 2 2]),
+  CC $ ConstrainedCells (PC $ AddsTo $ Number 15) (CellList [cell 0 2, cell 1 1, cell 2 0]),
+  CellInit (cell 0 1) (Number 9),
+  CellInit (cell 1 0) (Number 7),
+  CellInit (cell 1 2) (Number 3),
+  CellInit (cell 2 2) (Number 8)]
+
+sMagSquare :: PuzzleSolution
+sMagSquare = PuzzleSolution pMagSquare $ toSolutionMap 3 [
+  2, 9, 4,
+  7, 5, 3,
+  6, 1, 8]
+
+  -- | kakuro-small.pz
+pKakSmall :: Puzzle
+pKakSmall = Grid 4 4 [
+  CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 15)]) (Row (Number 0) (Just $ range 0 2)),
+  CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 8)]) (Row (Number 1) (Just $ range 0 2)),
+  CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 15)]) (Row (Number 2) (Just $ range 1 3)),
+  CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 19)]) (Row (Number 3) (Just $ range 1 3)),
+  CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 11)]) (Col (Number 0) (Just $ range 0 1)),
+  CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 16)]) (Col (Number 1) (Just $ range 0 3)),
+  CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 17)]) (Col (Number 2) (Just $ range 0 3)),
+  CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 13)]) (Col (Number 3) (Just $ range 2 3)),
+  CellInit (cell 0 2) (Number 3),
+  CellInit (cell 1 1) (Number 1),
+  CellInit (cell 2 2) (Number 2),
+  CellInit (cell 3 1) (Number 2),
+  CellInit Unconstrained (Number 0)]
+
+sKakSmall :: PuzzleSolution
+sKakSmall = PuzzleSolution pKakSmall $ toSolutionMap 4 [
+  8, 4, 3, 0,
+  3, 1, 4, 0,
+  0, 9, 2, 4,
+  0, 2, 8, 9]

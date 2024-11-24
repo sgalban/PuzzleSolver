@@ -1,9 +1,10 @@
 module PuzzleSolver(solve, validate) where
 import Puzzle
 import qualified Test.QuickCheck as QC
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, isNothing)
 import qualified Data.List as List
 import qualified Data.Map as Map
+import Test.HUnit (Assertion, Counts, Test (..), assert, runTestTT, (~:), (~?=))
 
 solve :: Puzzle -> Maybe PuzzleSolution
 solve puzzle = undefined
@@ -45,6 +46,13 @@ prop_addInvalid ps@(PuzzleSolution p@(Grid w h _) s) r c v =
     _ -> True
     where
       pair = (r `mod` h, c `mod` h)
+
+test_solve = 
+  "Testing Solver"
+    ~: TestList
+      [solve pSudSmall ~?= Just sSudSmall,
+      solve pMagSquare ~?= Just sMagSquare,
+      solve pKakSmall ~?= Just sKakSmall]
 
 checkProps :: IO ()
 checkProps = do
