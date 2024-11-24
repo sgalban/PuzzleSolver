@@ -3,6 +3,8 @@ import Test.QuickCheck (Arbitrary)
 import qualified Test.QuickCheck as QC
 import Control.Monad (liftM2, liftM3)
 import qualified Data.Map as Map
+import Text.PrettyPrint (Doc, (<+>))
+import Text.PrettyPrint qualified as PP
 
 data NumExp
   = Number Int
@@ -101,6 +103,21 @@ data PuzzleSolution = PuzzleSolution {
   puzzle :: Puzzle,
   cellValues :: Map.Map (Int, Int) Int
   } deriving (Show, Eq)
+
+-- | Sets a value in a PuzzleSolution at the specified coordinate. If a value
+-- | already exists at that coordinate, it will be overridden
+-- | Fails if the coordinate is not in the bounds of the puzzle
+putCellValue :: PuzzleSolution -> (Int, Int) -> Int -> Maybe PuzzleSolution
+putCellValue (PuzzleSolution p s) coord@(row, col) val =
+  if row > 0 && col > 0 && row < height p && col < width p
+    then Just $ PuzzleSolution p (Map.insert coord val s)
+    else Nothing
+
+-- | Removes the value of the solution at the specified coordinate.
+-- | If the coordinate does not exist in the solution, this is a no-op
+removeCellValue :: PuzzleSolution -> (Int, Int) -> PuzzleSolution
+removeCellValue (PuzzleSolution p s) coord@(row, col) =
+  PuzzleSolution p (Map.delete coord s)
 
 -- QuickCheck instances
 
@@ -202,7 +219,7 @@ toSolutionMap cols values = Map.fromList (solList values)
 -- | A couple of functions to make hardcoding puzzles less verbose
 
 range :: Int -> Int -> Range
-range a b = Range(Number a, Number b)
+range a b = Range (Number a, Number b)
 
 cell :: Int -> Int -> CellGroup
 cell a b = ACell (Number a) (Number b)

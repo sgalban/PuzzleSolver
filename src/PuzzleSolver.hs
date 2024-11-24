@@ -34,18 +34,21 @@ prop_emptyValid :: Puzzle -> QC.Property
 prop_emptyValid p = isValidPuzzle p QC.==> validate $ PuzzleSolution p Map.empty
 
 prop_subsolutionValid :: PuzzleSolution -> QC.Property
-prop_subsolutionValid ps@(PuzzleSolution p s) =
+prop_subsolutionValid ps@(PuzzleSolution _ s) =
   validate ps QC.==> case Map.keys s of
-    (k : _) ->  validate $ PuzzleSolution p (Map.delete k s)
+    (k : _) ->  validate $ removeCellValue ps k
     _ -> True
 
 prop_addInvalid :: PuzzleSolution -> Int -> Int -> Int -> QC.Property
 prop_addInvalid ps@(PuzzleSolution p@(Grid w h _) s) r c v =
   not (validate ps) QC.==> case Map.keys s of
-    (k : _) ->  not . validate $ PuzzleSolution p (Map.insert pair v s)
+    (k : _) -> case ps' of
+      Just sol -> not . validate $ sol
+      _ -> True
     _ -> True
     where
       pair = (r `mod` h, c `mod` h)
+      ps' = putCellValue ps pair v
 
 test_solve = 
   "Testing Solver"
