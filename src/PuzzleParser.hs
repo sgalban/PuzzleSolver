@@ -1,150 +1,560 @@
-
 module PuzzleParser where
 
-import Control.Applicative
-import Data.Char qualified as Char
+import Prelude hiding (filter)
+import Control.Applicative (Alternative(..))
+import Parser
 import Puzzle
+import Data.Char qualified as Char
 import Parser (Parser)
 import Parser qualified as P
-import Text.PrettyPrint (Doc, (<+>), text, nest, hsep, vcat, parens, braces, brackets, render)
 import Test.HUnit (Assertion, Counts, Test (..), assert, runTestTT, (~:), (~?=))
-import Test.QuickCheck qualified as QC
-import Test.QuickCheck.Arbitrary
-import Test.QuickCheck.Gen
+import Text.PrettyPrint (Doc, (<+>), text, nest, hsep, vcat, parens, braces, brackets, render, int, char, comma, hcat, punctuate, empty)
+import Test.QuickCheck (Arbitrary, Gen, Property, quickCheck, (==>), property, counterexample)
+import Debug.Trace (trace)
 
 
--- | Parse a number
-numberP :: Parser NumExp
-numberP = Number <$> wsP P.int
-
--- | Parse a binary operation
-bopP :: Parser Bop
-bopP = undefined
-
--- | Parse a numerical expression
-numExpP :: Parser NumExp
-numExpP = undefined
-
--- | Parse a repeat variable (e.g., $1)
-repeatVarP :: Parser NumExp
-repeatVarP = undefined
--- | Parse a range (e.g., 1 to 5)
-rangeP :: Parser Range
-rangeP =undefined
-
--- | Parse a grid definition
-gridP :: Parser Puzzle
-gridP = undefined
-
--- | Parse a constraint
-constraintsP :: Parser ConstrainedCells
-constraintsP = undefined
-
--- | Parse a constraint rule
-constraintP :: Parser Constraint
-constraintP = undefined
-
--- | Parse primitive constraints
-primitiveConstraintP :: Parser Constraint
-primitiveConstraintP = undefined
-
--- | Parse a cell group
-cellGroupP :: Parser CellGroup
-cellGroupP = undefined
-
--- | Parse a cell initialization
-cellInitP :: Parser ConstrainedCells
-cellInitP = undefined
-
--- Utility parsers
+-- Parser for whitespace-aware parsing
 wsP :: Parser a -> Parser a
-wsP p = p <* many P.space
+wsP p = p <* many space
 
-stringP :: String -> Parser ()
-stringP s = wsP (P.string s) *> pure ()
+-- Parsing a keyword
+keyword :: String -> Parser ()
+keyword s = wsP (string s) *> pure ()
 
+-- Parsing an integer
+parseInt :: Parser Int
+-- parseInt = wsP $ read <$> some digit
+
+parseInt = wsP $ (negate <$> (Parser.char '-' *> parseDigit)) <|> parseDigit
+  where
+    parseDigit = read <$> some digit
+
+-- Wrapping in parentheses
 parens :: Parser a -> Parser a
-parens p = P.between (stringP "(") p (stringP ")")
+parens p = between (keyword "(") p (keyword ")")
 
-braces :: Parser a -> Parser a
-braces p = P.between (stringP "{") p (stringP "}")
-
+-- Wrapping in brackets
 brackets :: Parser a -> Parser a
-brackets p = P.between (stringP "[") p (stringP "]")
+brackets p = between (keyword "[") p (keyword "]")
 
--- Test Cases
-test_numberP :: Test
-test_numberP =
-  TestList
-    [ P.parse numberP "123" ~?= Right (Number 123),
-      P.parse numberP "0" ~?= Right (Number 0)
-    ]
+-- Wrapping in braces
+braces :: Parser a -> Parser a
+braces p = between (keyword "{") p (keyword "}")
 
-test_bopP :: Test
-test_bopP =
-  TestList
-    [ P.parse bopP "+" ~?= Right Plus,
-      P.parse bopP "-" ~?= Right Minus,
-      P.parse bopP "*" ~?= Right Times
-    ]
+parseNumExp :: Parser NumExp
+parseNumExp = parseRepeatVar <|> parseNumber <|> PuzzleParser.parens parseOpExpr
+  where
+    parseRepeatVar = RepeatVar <$> (Parser.char '$' *> parseInt)
+    parseNumber = Number <$> parseInt
 
-test_gridP :: Test
-test_gridP =
-  TestList
-    [ P.parse gridP "grid(4,4){ }" ~?= Right (Grid 4 4 []),
-      P.parse gridP "grid(3,3){ init cell(0,0) with 5 }"
-        ~?= Right (Grid 3 3 [CC (ConstrainedCells (PC Always) (ACell (Number 0) (Number 0)))])
-    ]
+parseOpExpr :: Parser NumExp
+parseOpExpr = parseNumExp `chainl1` parseOperator
 
-runTests :: IO Counts
-runTests = runTestTT $ TestList [test_numberP, test_bopP, test_gridP]
+parseOperator :: Parser (NumExp -> NumExp -> NumExp)
+parseOperator = (\op left right -> Op2 left op right) <$> parseBop
 
--- >>> runTests
+parseBop :: Parser Bop
+parseBop =
+      (keyword "+" *> pure Plus)
+  <|> (keyword "-" *> pure Minus)
+  <|> (keyword "*" *> pure Times)
+  <|> (keyword "//" *> pure Divide)
+  <|> (keyword "%" *> pure Modulo)
+  <|> (keyword "^" *> pure Power)
+testParseNumExp :: Test
+testParseNumExp = TestList
+  [ parse parseNumExp "42" ~?= Right (Number 42),
+    parse parseNumExp "$100" ~?= Right (RepeatVar 100),
+    parse parseNumExp "(-1 + 2)" ~?= Right (Op2 (Number (-1)) Plus (Number 2)),
+    parse parseNumExp "(3 * (4 + 5))" ~?= Right (Op2 (Number 3) Times (Op2 (Number 4) Plus (Number 5)))
+  ]
+-- >>> parse parseNumExp "(1 - -2)"
+-- Right (Op2 (Number 1) Minus (Number (-2)))
+-- >>> runTestTT testParseNumExp
+-- Counts {cases = 4, tried = 4, errors = 0, failures = 0}
 
--- | Pretty print a number
+
+-- Parsing a range (e.g., "1 to 10")
+parseRange :: Parser Range
+parseRange = Range <$> ((,) <$> parseNumExp <*> (keyword "to" *> parseNumExp))
+            <|> (Range <$> ((,) <$> parseNumExp <*> (keyword "," *> parseNumExp)))
+
+testParseRange :: Test
+testParseRange = TestList
+  [ parse parseRange "1 to 10" ~?= Right (Range (Number 1, Number 10)),
+    parse parseRange "3 to 7" ~?= Right (Range (Number 3, Number 7)),
+    parse parseRange "(1 + 2) to (3 * 4)" ~?= Right (Range (Op2 (Number 1) Plus (Number 2), Op2 (Number 3) Times (Number 4))),
+    parse parseRange "$1 to $2" ~?= Right (Range (RepeatVar 1, RepeatVar 2)),
+    parse parseRange "1 to " ~?= Left "No parses",  -- Incomplete range
+    parse parseRange "to 10" ~?= Left "No parses", -- Missing start of range
+    parse parseRange "1 - 10" ~?= Left "No parses" -- Invalid separator
+  ]
+-- >>> runTestTT testParseRange
+-- Counts {cases = 7, tried = 7, errors = 0, failures = 0}
+
+
+parsePrimitiveConstraint :: Parser PrimitiveConstraint
+parsePrimitiveConstraint =
+      (keyword "unique" *> PuzzleParser.parens parseRange >>= return . Unique)
+  <|> (keyword "addsTo" *> PuzzleParser.parens parseNumExp >>= return . AddsTo)
+  <|> (keyword "multTo" *> PuzzleParser.parens parseNumExp >>= return . MultsTo)
+  <|> (keyword "greaterThan" *> PuzzleParser.parens ((,) <$> parseNumExp <*> (wsP (Parser.char ',') *> parseNumExp)) >>= return . uncurry GreaterThan)
+  <|> (keyword "lessThan" *> PuzzleParser.parens ((,) <$> parseNumExp <*> (wsP (Parser.char ',') *> parseNumExp)) >>= return . uncurry LessThan)
+  <|> (keyword "always" *> pure Always)
+  <|> (keyword "never" *> pure Never)
+
+
+testParsePrimitiveConstraint :: Test
+testParsePrimitiveConstraint = TestList
+  [ parse parsePrimitiveConstraint "unique(1 to 10)" ~?= Right (Unique (Range (Number 1, Number 10))),
+    parse parsePrimitiveConstraint "addsTo(15)" ~?= Right (AddsTo (Number 15)),
+    parse parsePrimitiveConstraint "multTo(20)" ~?= Right (MultsTo (Number 20)),
+    parse parsePrimitiveConstraint "greaterThan(1, 2)" ~?= Right (GreaterThan (Number 1) (Number 2)),
+    parse parsePrimitiveConstraint "lessThan(5, 3)" ~?= Right (LessThan (Number 5) (Number 3)),
+    parse parsePrimitiveConstraint "always" ~?= Right Always,
+    parse parsePrimitiveConstraint "never" ~?= Right Never
+  ]
+
+-- >>> runTestTT testParsePrimitiveConstraint
+-- Counts {cases = 7, tried = 7, errors = 0, failures = 0}
+
+-- Parsing a single primitive constraint prefixed by "constraint"
+parseSinglePrimitiveConstraint :: Parser PrimitiveConstraint
+parseSinglePrimitiveConstraint =
+  keyword "constraint" *> parsePrimitiveConstraint
+
+
+-- Parsing a constraint list
+parseConstraintList :: Parser Constraint
+parseConstraintList = ConstraintList <$> (keyword "constraints" *> PuzzleParser.brackets (parsePrimitiveConstraint `sepBy` keyword ","))
+
+testParseConstraintList :: Test
+testParseConstraintList = TestList
+  [ parse parseConstraintList "constraints[unique(1 to 10)]"
+      ~?= Right (ConstraintList [Unique (Range (Number 1, Number 10))]),
+    parse parseConstraintList "constraints[unique(1 to 10), addsTo(15)]"
+      ~?= Right (ConstraintList [Unique (Range (Number 1, Number 10)), AddsTo (Number 15)]),
+    parse parseConstraintList "constraints[unique(1 to 10), addsTo(15), multTo(20)]"
+      ~?= Right (ConstraintList [Unique (Range (Number 1, Number 10)), AddsTo (Number 15), MultsTo (Number 20)]),
+    parse parseConstraintList "constraints[always, never]"
+      ~?= Right (ConstraintList [Always, Never]),
+    parse parseConstraintList "constraints[unique(1 to 5), greaterThan(1, 2), lessThan(5, 3)]"
+      ~?= Right (ConstraintList [Unique (Range (Number 1, Number 5)), GreaterThan (Number 1) (Number 2), LessThan (Number 5) (Number 3)]),
+    parse parseConstraintList "constraints[]"
+      ~?= Right (ConstraintList [])
+  ]
+
+-- >>> runTestTT testParseConstraintList
+-- Counts {cases = 6, tried = 6, errors = 0, failures = 0}
+
+-- Parsing a single constraint
+parseConstraint :: Parser Constraint
+parseConstraint =
+  (PC <$> parseSinglePrimitiveConstraint)
+    <|> parseConstraintList
+
+
+testParseConstraint :: Test
+testParseConstraint = TestList
+  [ -- Parsing a single primitive constraint
+    parse parseConstraint "constraint unique(1 to 10)"
+      ~?= Right (PC (Unique (Range (Number 1, Number 10)))),
+    parse parseConstraint "constraint addsTo(15)"
+      ~?= Right (PC (AddsTo (Number 15))),
+    parse parseConstraint "constraint multTo(20)"
+      ~?= Right (PC (MultsTo (Number 20))),
+    parse parseConstraint "constraint greaterThan(5, 3)"
+      ~?= Right (PC (GreaterThan (Number 5) (Number 3))),
+    parse parseConstraint "constraint lessThan(4, 6)"
+      ~?= Right (PC (LessThan (Number 4) (Number 6))),
+    parse parseConstraint "constraint always"
+      ~?= Right (PC Always),
+    parse parseConstraint "constraint never"
+      ~?= Right (PC Never),
+
+    -- Parsing a constraint list
+    parse parseConstraint "constraints[unique(1 to 10)]"
+      ~?= Right (ConstraintList [Unique (Range (Number 1, Number 10))]),
+    parse parseConstraint "constraints[unique(1 to 10), addsTo(15)]"
+      ~?= Right (ConstraintList [Unique (Range (Number 1, Number 10)), AddsTo (Number 15)]),
+    parse parseConstraint "constraints[unique(1 to 10), addsTo(15), multTo(20)]"
+      ~?= Right (ConstraintList [Unique (Range (Number 1, Number 10)), AddsTo (Number 15), MultsTo (Number 20)]),
+    parse parseConstraint "constraints[always, never]"
+      ~?= Right (ConstraintList [Always, Never]),
+    parse parseConstraint "constraints[unique(1 to 5), greaterThan(1, 2), lessThan(5, 3)]"
+      ~?= Right (ConstraintList [Unique (Range (Number 1, Number 5)), GreaterThan (Number 1) (Number 2), LessThan (Number 5) (Number 3)]),
+
+    -- Invalid inputs
+    parse parseConstraint "invalid" ~?= Left "No parses",
+    parse parseConstraint "constraints[invalid]" ~?= Left "No parses"
+  ]
+
+-- >>> runTestTT testParseConstraint
+-- Counts {cases = 14, tried = 14, errors = 0, failures = 0}
+
+
+-- Parsing a cell group
+parseCellGroup :: Parser CellGroup
+parseCellGroup =
+      (keyword "cell" *> PuzzleParser.parens (ACell <$> parseNumExp <*> (keyword "," *> parseNumExp)))
+  <|> (keyword "cells" *> PuzzleParser.brackets (CellList <$> parseCellGroup `sepBy` keyword ","))
+  <|> (keyword "row" *> (Row <$> parseNumExp <*> parseRowColRange))
+  <|> (keyword "col" *> (Col <$> parseNumExp <*> parseRowColRange))
+  <|> (keyword "subgrid" *> PuzzleParser.parens (Subgrid <$> parseNumExp <*> (keyword "," *> parseNumExp) <*> (keyword "," *> parseNumExp) <*> (keyword "," *> parseNumExp)))
+  <|> (keyword "all" *> pure All)
+  <|> (keyword "unconstrained" *> pure Unconstrained)
+  <|> (Parser.char '~' *> (Inverse <$> parseCellGroup)) 
+
+testParseCellGroup :: Test
+testParseCellGroup = TestList
+  [ parse parseCellGroup "cell(1,2)"
+      ~?= Right (ACell (Number 1) (Number 2)),
+    parse parseCellGroup "cells[cell(1,2), cell(3,4)]"
+      ~?= Right (CellList [ACell (Number 1) (Number 2), ACell (Number 3) (Number 4)]),
+    parse parseCellGroup "row 1"
+      ~?= Right (Row (Number 1) Nothing),
+    parse parseCellGroup "row 1 from 0 to 3"
+      ~?= Right (Row (Number 1) (Just (Range (Number 0, Number 3)))),
+    parse parseCellGroup "col 2"
+      ~?= Right (Col (Number 2) Nothing),
+    parse parseCellGroup "col 2 from 0 to 4"
+      ~?= Right (Col (Number 2) (Just (Range (Number 0, Number 4)))),
+    parse parseCellGroup "subgrid(0,0,2,2)"
+      ~?= Right (Subgrid (Number 0) (Number 0) (Number 2) (Number 2)),
+    parse parseCellGroup "all"
+      ~?= Right All,
+    parse parseCellGroup "unconstrained"
+      ~?= Right Unconstrained,
+    parse parseCellGroup "invalid"
+      ~?= Left "No parses"
+  ]
+
+-- >>> runTestTT testParseCellGroup
+-- Counts {cases = 10, tried = 10, errors = 0, failures = 0}
+
+
+
+-- Helper for parsing optional ranges in rows and columns
+parseRowColRange :: Parser (Maybe Range)
+parseRowColRange = (keyword "from" *> (Just <$> parseRange)) <|> pure Nothing
+
+parseConstraintRule :: Parser ConstraintRule
+parseConstraintRule =
+      (keyword "init" *> (CellInit <$> parseCellGroup <*> (keyword "with" *> parseNumExp)))
+  <|> (keyword "repeat" *> (Repeat <$> PuzzleParser.parens parseRange <*> PuzzleParser.braces parseSingleOrMultipleRules))
+  <|> (CC <$> (ConstrainedCells <$> parseConstraint <*> (keyword "in" *> parseCellGroup)))
+
+parseSingleOrMultipleRules :: Parser ConstraintRule
+parseSingleOrMultipleRules = many parseConstraintRule >>= wrapMultipleRules
+  where
+    wrapMultipleRules :: [ConstraintRule] -> Parser ConstraintRule
+    wrapMultipleRules [rule] = pure rule
+    wrapMultipleRules rules  = pure $ CC $ ConstrainedCells (ConstraintList []) All
+
+
+
+testParseConstraintRule :: Test
+testParseConstraintRule = TestList
+  [ -- Test for CellInit
+    parse parseConstraintRule "init cell(1,2) with 42"
+      ~?= Right (CellInit (ACell (Number 1) (Number 2)) (Number 42)),
+
+    parse parseConstraintRule "init row 1 from 0 to 3 with $1"
+      ~?= Right (CellInit (Row (Number 1) (Just (Range (Number 0, Number 3)))) (RepeatVar 1)),
+
+    parse parseConstraintRule "init cell(0,0) with 1"
+      ~?= Right (CellInit (ACell (Number 0) (Number 0)) (Number 1)),
+    parse parseConstraintRule "repeat(1 to 4) { init cell(0,0) with $1 }"
+      ~?= Right (Repeat
+                   (Range (Number 1, Number 4))
+                   (CellInit (ACell (Number 0) (Number 0)) (RepeatVar 1))),
+    parse parseConstraintRule "repeat(0 to 1) { repeat(0 to 1) { init cell(0,0) with $0 } }"
+      ~?= Right (Repeat
+                   (Range (Number 0, Number 1))
+                   (Repeat
+                     (Range (Number 0, Number 1))
+                     (CellInit (ACell (Number 0) (Number 0)) (RepeatVar 0)))),
+
+    -- Test for CC
+    parse parseConstraintRule "constraints [unique(1 to 9), addsTo(15)] in col 2 from 0 to 3"
+      ~?= Right (CC (ConstrainedCells 
+                    (ConstraintList [Unique (Range (Number 1, Number 9)), AddsTo (Number 15)]) 
+                    (Col (Number 2) (Just (Range (Number 0, Number 3)))))),
+
+    parse parseConstraintRule "constraints [greaterThan(1, 2), always] in subgrid(0,0,2,2)"
+      ~?= Right (CC (ConstrainedCells 
+                    (ConstraintList [GreaterThan (Number 1) (Number 2), Always]) 
+                    (Subgrid (Number 0) (Number 0) (Number 2) (Number 2)))),
+
+    -- Invalid inputs
+    parse parseConstraintRule "invalid"
+      ~?= Left "No parses",
+
+    parse parseConstraintRule "init with cell(1,1) 42"
+      ~?= Left "No parses"
+  ]
+
+-- >>> runTestTT testParseConstraintRule
+-- Counts {cases = 9, tried = 9, errors = 0, failures = 0}
+
+
+-- Parsing a grid (the puzzle)
+parsePuzzle :: Parser Puzzle
+parsePuzzle =
+  keyword "grid"
+    *> (PuzzleParser.parens ((,) <$> parseInt <*> (keyword "," *> parseInt)))
+    >>= \(width, height) -> Grid width height <$> (keyword "{" *> many parseConstraintRule <* keyword "}")
+
+testParsePuzzle :: Test
+testParsePuzzle = TestList
+  [ -- Valid puzzle with a single rule
+    parse parsePuzzle "grid(4,4) { init cell(0,0) with 1 }"
+      ~?= Right (Grid
+                  4
+                  4
+                  [CellInit (ACell (Number 0) (Number 0)) (Number 1)]),
+
+    -- Valid puzzle with multiple rules
+    parse parsePuzzle "grid(4,4) { init cell(0,0) with 1 repeat (1 to 4) { init cell(0,1) with $1 } }"
+      ~?= Right (Grid
+                  4
+                  4
+                  [ CellInit (ACell (Number 0) (Number 0)) (Number 1),
+                    Repeat (Range (Number 1, Number 4))
+                           (CellInit (ACell (Number 0) (Number 1)) (RepeatVar 1))
+                  ]),
+
+    -- Missing closing brace
+    parse parsePuzzle "grid(4,4) { init cell(0,0) with 1"
+      ~?= Left "No parses",
+
+    -- Empty grid
+    parse parsePuzzle "grid(4,4) { }"
+      ~?= Right (Grid 4 4 [])
+  ]
+
+-- >>> parse parsePuzzle "grid(4, 4) {repeat(0, 3) { constraint unique(1 to 4) in row $0 } repeat(0, 3) { constraint unique(1 to 4) in col $0 } repeat(0, 1) { repeat(0, 1) { constraint unique(1 to 4) in subgrid(($0 * 2, $1 * 2), 2, 2)}} init cell(0, 3) with 3 init cell(1, 1) with 4 init cell(2, 2) with 3 init cell(2, 3) with 2 } "
+-- Left "No parses"
+
+-- >>> runTestTT testParsePuzzle
+-- Counts {cases = 4, tried = 4, errors = 0, failures = 0}
+
+
+
+
+-- -- Main for testing
+-- main :: IO ()
+-- main = do
+--   print testPuzzle
+--   runTestTT $ TestList
+--     [ "Whitespace Parser" ~: runTestTT test_wsP,
+--       "Keyword Parser" ~: runTestTT test_keyword,
+--       "Integer Parser" ~: runTestTT testParseInt,
+--       "Binary Op Parser" ~: runTestTT testParseBop
+--     ]
+
+testInput :: String
+testInput = unlines
+  [ "grid(3, 3) {"
+  , "  constraint unique(1 to 9) in all"
+  , ""
+  , "  repeat(0, 2) {"
+  , "    constraint addsTo(15) in row $0"
+  , "  }"
+  , ""
+  , "  repeat(0, 2) {"
+  , "    constraint addsTo(15) in col $0"
+  , "  }"
+  , ""
+  , "  constraint addsTo(15) in cells [cell(0, 0), cell(1, 1), cell(2, 2)]"
+  , "  constraint addsTo(15) in cells [cell(0, 2), cell(1, 1), cell(2, 0)]"
+  , ""
+  , "  init cell(0, 1) with 9"
+  , "  init cell(1, 0) with 7"
+  , "  init cell(1, 2) with 3"
+  , "  init cell(2, 2) with 8"
+  , "}"
+  ]
+-- >>> parse parsePuzzle testInput
+-- Right (Grid {width = 3, height = 3, constraints = [CC (ConstrainedCells {constraint = PC (Unique (Range (Number 1,Number 9))), cellGroup = All}),Repeat (Range (Number 0,Number 2)) (CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = Row (RepeatVar 0) Nothing})),Repeat (Range (Number 0,Number 2)) (CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = Col (RepeatVar 0) Nothing})),CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = CellList [ACell (Number 0) (Number 0),ACell (Number 1) (Number 1),ACell (Number 2) (Number 2)]}),CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = CellList [ACell (Number 0) (Number 2),ACell (Number 1) (Number 1),ACell (Number 2) (Number 0)]}),CellInit (ACell (Number 0) (Number 1)) (Number 9),CellInit (ACell (Number 1) (Number 0)) (Number 7),CellInit (ACell (Number 1) (Number 2)) (Number 3),CellInit (ACell (Number 2) (Number 2)) (Number 8)]})
+
+testConstraintRule :: String
+testConstraintRule = "repeat(0, 2) { constraint addsTo(15) in row $0 }"
+
+-- >>> parse parseConstraintRule testConstraintRule
+-- Right (Repeat (Range (Number 0,Number 2)) (CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = Row (RepeatVar 0) Nothing})))
+
+
+-- >>> parse parseConstraintRule "constraints [unique(1 to 9)] in all"
+-- Right (CC (ConstrainedCells {constraint = ConstraintList [Unique (Range (Number 1,Number 9))], cellGroup = All}))
+
+-- PrettyPrint for NumExp
 prettyNumExp :: NumExp -> Doc
-prettyNumExp  = undefined
+prettyNumExp (Number n) = Text.PrettyPrint.int n
+prettyNumExp (RepeatVar n) = Text.PrettyPrint.char '$' <> Text.PrettyPrint.int n
+prettyNumExp (Op2 l op r) = Text.PrettyPrint.parens $ prettyNumExp l <+> prettyBop op <+> prettyNumExp r
 
+-- PrettyPrint for Bop
 prettyBop :: Bop -> Doc
-prettyBop = undefined
+prettyBop Plus = Text.PrettyPrint.char '+'
+prettyBop Minus = Text.PrettyPrint.char '-'
+prettyBop Times = Text.PrettyPrint.char '*'
+prettyBop Divide = Text.PrettyPrint.text "//"
+prettyBop Modulo = Text.PrettyPrint.char '%'
+prettyBop Power = Text.PrettyPrint.char '^'
 
-prettyPuzzle :: Puzzle -> Doc
-prettyPuzzle = undefined
-
-prettyConstrainedCells :: ConstrainedCells -> Doc
-prettyConstrainedCells = undefined
-
-prettyPrimitiveConstraint :: PrimitiveConstraint -> Doc
-prettyPrimitiveConstraint = undefined
+-- PrettyPrint for Range
+prettyRange :: Range -> Doc
+prettyRange (Range (start, end)) = prettyNumExp start <+> text "to" <+> prettyNumExp end
 
 prettyCellGroup :: CellGroup -> Doc
-prettyCellGroup = undefined
+prettyCellGroup (ACell r c) =
+  text "cell" <> Text.PrettyPrint.parens (prettyNumExp r <> (comma <+> prettyNumExp c))
+prettyCellGroup (CellList cells) =
+    text "cells" <> Text.PrettyPrint.brackets (hcat $ punctuate comma (map prettyCellGroup cells))
+prettyCellGroup (Subgrid r c w h) =
+    text "subgrid" <> Text.PrettyPrint.parens (hsep $ punctuate comma [prettyNumExp r, prettyNumExp c, prettyNumExp w, prettyNumExp h])
+prettyCellGroup (Row idx range) =
+    text "row" <+> prettyNumExp idx <+> maybe Text.PrettyPrint.empty (\r -> text "from" <+> prettyRange r) range
+prettyCellGroup (Col idx range) =
+    text "col" <+> prettyNumExp idx <+> maybe Text.PrettyPrint.empty (\r -> text "from" <+> prettyRange r) range
+prettyCellGroup (Inverse cells) =
+    Text.PrettyPrint.char '~' <> prettyCellGroup cells
+prettyCellGroup All =
+    text "all"
+prettyCellGroup Unconstrained =
+    text "unconstrained"
 
 
 
--- Property 1: Roundtrip parsing
--- If you parse a value and then pretty-print it back, parsing the result should yield the same value.
-prop_roundtrip_numExp :: NumExp -> Bool
-prop_roundtrip_numExp exp =
-  case P.parse numExpP (render (prettyNumExp exp)) of
-    Right parsed -> parsed == exp
-    _ -> False
 
--- Property 2: Parser always succeeds for valid inputs
-prop_parser_succeeds :: NumExp -> Bool
-prop_parser_succeeds exp = P.parse numExpP (render (prettyNumExp exp)) /= Left "No parses"
+-- PrettyPrint for PrimitiveConstraint
+prettyPrimitiveConstraint :: PrimitiveConstraint -> Doc
+prettyPrimitiveConstraint (Unique range) =
+  text "unique" <> Text.PrettyPrint.parens (prettyRange range)
+prettyPrimitiveConstraint (AddsTo n) =
+  text "addsTo" <> Text.PrettyPrint.parens (prettyNumExp n)
+prettyPrimitiveConstraint (MultsTo n) =
+  text "multTo" <> Text.PrettyPrint.parens (prettyNumExp n)
+prettyPrimitiveConstraint (GreaterThan r1 r2) =
+  text "greaterThan" <> Text.PrettyPrint.parens (prettyNumExp r1 <> (comma <+> prettyNumExp r2))
+prettyPrimitiveConstraint (LessThan r1 r2) =
+  text "lessThan" <> Text.PrettyPrint.parens (prettyNumExp r1 <> (comma <+> prettyNumExp r2))
+prettyPrimitiveConstraint Always =
+  text "always"
+prettyPrimitiveConstraint Never =
+  text "never"
 
--- Property 3: Binary Operations Preserve Structure
-prop_bop_structure :: NumExp -> Bop -> NumExp -> Bool
-prop_bop_structure left op right =
-  let input = render (prettyNumExp (Op2 left op right))
-   in case P.parse numExpP input of
-        Right (Op2 l o r) -> l == left && o == op && r == right
-        _ -> False
+-- PrettyPrint for Constraint
+prettyConstraint :: Constraint -> Doc
+prettyConstraint (PC p) = text "constraint" <+> prettyPrimitiveConstraint p
+prettyConstraint (ConstraintList ps) =
+  text "constraints" <> Text.PrettyPrint.brackets (hcat $ punctuate comma (map prettyPrimitiveConstraint ps))
 
-qc :: IO ()
-qc = do
-  putStrLn "QuickCheck Tests:"
-  QC.quickCheck prop_roundtrip_numExp
-  QC.quickCheck prop_parser_succeeds
-  QC.quickCheck prop_bop_structure
+-- PrettyPrint for ConstrainedCells
+prettyConstrainedCells :: ConstrainedCells -> Doc
+prettyConstrainedCells (ConstrainedCells c group) =
+  prettyConstraint c <+> text "in" <+> prettyCellGroup group
+
+-- PrettyPrint for ConstraintRule
+prettyConstraintRule :: ConstraintRule -> Doc
+prettyConstraintRule (CellInit cells n) =
+    text "init" <+> prettyCellGroup cells <+> text "with" <+> prettyNumExp n
+prettyConstraintRule (Repeat range rule) =
+    text "repeat" <+> Text.PrettyPrint.parens (prettyRange range) <+> Text.PrettyPrint.braces (prettyConstraintRule rule)
+prettyConstraintRule (CC cc) =
+    prettyConstrainedCells cc
+
+
+prettyPuzzle :: Puzzle -> Doc
+prettyPuzzle (Grid w h rules) =
+  text "grid" <+> Text.PrettyPrint.parens ((Text.PrettyPrint.int w <> comma) <+> Text.PrettyPrint.int h) <+> Text.PrettyPrint.braces (vcat (map prettyConstraintRule rules))
+
+
+-- Helper Function
+prettyPrint :: Puzzle -> String
+prettyPrint = render . prettyPuzzle
+
+
+-- Test Inputs
+
+-- Test 1: Basic grid with no constraints
+testPuzzle1 :: Puzzle
+testPuzzle1 = Grid 3 3 []
+
+-- Test 2: Grid with a single cell initialization
+testPuzzle2 :: Puzzle
+testPuzzle2 = Grid 4 4 [CellInit (ACell (Number 0) (Number 1)) (Number (-5))]
+
+-- >>> parse parsePuzzle (prettyPrint testPuzzle2)
+-- Right (Grid {width = 4, height = 4, constraints = [CellInit (ACell (Number 0) (Number 1)) (Number (-5))]})
+
+-- Test 3: Grid with constraints and a repeat rule
+testPuzzle3 :: Puzzle
+testPuzzle3 = Grid 4 4
+  [ CC (ConstrainedCells (PC (AddsTo (Number 10))) (Row (Number 0) Nothing)),
+    Repeat (Range (Number 0, Number 2)) (CC (ConstrainedCells (PC Always) All))
+  ]
+
+-- Test 4: Complex grid with multiple nested repeats and constraints
+testPuzzle4 :: Puzzle
+testPuzzle4 = Grid 3 3
+  [ CC (ConstrainedCells (PC (AddsTo (Number 15))) All),
+    Repeat (Range (Number 0, Number 2)) (CC (ConstrainedCells (PC (AddsTo (Number 15))) (Row (RepeatVar 0) Nothing))),
+    Repeat (Range (Number 0, Number 2)) (CC (ConstrainedCells (PC (AddsTo (Number 15))) (Col (RepeatVar 0) Nothing))),
+    CC (ConstrainedCells (PC (AddsTo (Number 15))) (CellList [ACell (Number 0) (Number 0), ACell (Number 1) (Number 1), ACell (Number 2) (Number 2)])),
+    CC (ConstrainedCells (PC (AddsTo (Number 15))) (CellList [ACell (Number 0) (Number 2), ACell (Number 1) (Number 1), ACell (Number 2) (Number 0)])),
+    CellInit (ACell (Number 0) (Number 1)) (Number 9),
+    CellInit (ACell (Number 1) (Number 0)) (Number 7),
+    CellInit (ACell (Number 1) (Number 2)) (Number 3),
+    CellInit (ACell (Number 2) (Number 2)) (Number 8)
+  ]
+
+
+testPrettyPrint :: IO ()
+testPrettyPrint = do
+  -- Test 1: Basic grid
+  putStrLn "Test 1: Basic grid with no constraints"
+  putStrLn $ prettyPrint testPuzzle1
+
+  -- Test 2: Grid with a single cell initialization
+  putStrLn "\nTest 2: Grid with a single cell initialization"
+  putStrLn $ prettyPrint testPuzzle2
+
+  -- Test 3: Grid with constraints and a repeat rule
+  putStrLn "\nTest 3: Grid with constraints and a repeat rule"
+  putStrLn $ prettyPrint testPuzzle3
+
+  -- Test 4: Complex grid with multiple nested repeats and constraints
+  putStrLn "\nTest 4: Complex grid with multiple nested repeats and constraints"
+  putStrLn $ prettyPrint testPuzzle4
+
+-- >>> testPrettyPrint
+
+-- prop_roundtrip :: Puzzle -> Property
+-- prop_roundtrip puzzle =
+--   let prettyStr = prettyPrint puzzle
+--       parsed = parse parsePuzzle prettyStr  -- Correctly parse the string
+--   in case parsed of
+--        Left err -> counterexample ("Parsing failed: " ++ show err) False
+--        Right parsedPuzzle -> parsedPuzzle == puzzle  -- This returns a Bool, which needs to be converted to Property
+--            ==> parsedPuzzle == puzzle  -- Convert it to a Property
+
+prop_roundtrip :: Puzzle -> Property
+prop_roundtrip puzzle =
+  let prettyStr = prettyPrint puzzle
+      parsed = parse parsePuzzle prettyStr 
+  in trace ("Testing puzzle: " ++ show puzzle) $  -- Print the puzzle before anything happens
+     trace ("Pretty printed: " ++ prettyStr) $  -- Print the pretty string as well
+     case parsed of
+       Left err -> 
+         counterexample ("Parsing failed: " ++ show err) False
+       Right parsedPuzzle -> 
+         (parsedPuzzle == puzzle)  -- This is a Bool, which is automatically converted to a Property
+         ==> parsedPuzzle == puzzle  -- This ensures that it gets turned into a Property
+
+-- Main to Run Tests
+main :: IO ()
+main = do
+  testPrettyPrint
+  quickCheck prop_roundtrip
