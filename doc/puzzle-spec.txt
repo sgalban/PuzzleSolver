@@ -47,7 +47,7 @@
 # Represents a group of 0 or more cells. This is is used to apply constraints to
 # multiple cells at once. A single unary operator `~` can be used to invert the
 # cell group.
-<cells> := "~" (
+<cells> := ["~"] (
     aCell |
     cellList |
     cellRowCol |

@@ -8,7 +8,8 @@ build-type:          Simple
 
 common common-stanza
   ghc-options:         -Wincomplete-patterns -Wno-orphans -Wno-unused-imports -Wno-noncanonical-monad-instances
-  build-depends:       base 
+  build-depends:       base
+                     , mtl
                      , QuickCheck 
                      , containers 
                      , HUnit 
@@ -22,7 +23,8 @@ library
                        Puzzle,
                        PuzzleSolver,
                        PuzzleParser,
-                       PuzzleCLI
+                       PuzzleCLI,
+                       PuzzleEvaluator
 
  hs-source-dirs: src
 
@@ -30,6 +32,12 @@ executable puzzleSolver
   import: common-stanza
   main-is:             Main.hs
   other-modules:
+                       Puzzle,
+                       PuzzleSolver,
+                       Parser,
+                       PuzzleParser,
+                       PuzzleCLI,
+                       PuzzleEvaluator
   hs-source-dirs: src
   build-depends: puzzleSolver
 

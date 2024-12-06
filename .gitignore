@@ -402,3 +402,5 @@ $ Other
 .stack-work/
 # Maybe don't ignore the stack lock?
 stack.yaml.lock
+
+*.DS_Store

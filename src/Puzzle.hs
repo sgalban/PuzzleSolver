@@ -229,7 +229,7 @@ pSudSmall :: Puzzle
 pSudSmall = Grid 4 4 [
   Repeat (range 0 3) (CC $ ConstrainedCells (PC $ Unique $ range 1 4) (Row (RepeatVar 0) Nothing)),
   Repeat (range 0 3) (CC $ ConstrainedCells (PC $ Unique $ range 1 4) (Col (RepeatVar 0) Nothing)),
-  Repeat (range 0 1) (Repeat (range 0 1) (CC (ConstrainedCells (PC $ Unique $ range 1 4) (Subgrid (Op2 (RepeatVar 0) Times (Number 2)) (Op2 (RepeatVar 0) Times (Number 2)) (Number 2) (Number 2))))),
+  Repeat (range 0 1) (Repeat (range 0 1) (CC (ConstrainedCells (PC $ Unique $ range 1 4) (Subgrid (Op2 (RepeatVar 0) Times (Number 2)) (Op2 (RepeatVar 1) Times (Number 2)) (Number 2) (Number 2))))),
   CellInit (cell 0 3) (Number 3),
   CellInit (cell 1 1) (Number 4),
   CellInit (cell 2 2) (Number 3),

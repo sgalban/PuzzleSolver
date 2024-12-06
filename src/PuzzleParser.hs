@@ -531,15 +531,6 @@ testPrettyPrint = do
 
 -- >>> testPrettyPrint
 
--- prop_roundtrip :: Puzzle -> Property
--- prop_roundtrip puzzle =
---   let prettyStr = prettyPrint puzzle
---       parsed = parse parsePuzzle prettyStr  -- Correctly parse the string
---   in case parsed of
---        Left err -> counterexample ("Parsing failed: " ++ show err) False
---        Right parsedPuzzle -> parsedPuzzle == puzzle  -- This returns a Bool, which needs to be converted to Property
---            ==> parsedPuzzle == puzzle  -- Convert it to a Property
-
 prop_roundtrip :: Puzzle -> Property
 prop_roundtrip puzzle =
   let prettyStr = prettyPrint puzzle

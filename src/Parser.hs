@@ -47,6 +47,16 @@ instance Alternative Parser where
   (<|>) :: Parser a -> Parser a -> Parser a
   p1 <|> p2 = P $ \s -> doParse p1 s `firstJust` doParse p2 s
 
+instance Monad Parser where
+  return :: a -> Parser a
+  return x = P (\s -> Just (x, s))
+
+  (>>=) :: Parser a -> (a -> Parser b) -> Parser b
+  P p >>= f = P $ \s -> case p s of
+    Nothing -> Nothing
+    Just (a, s') -> do
+      let P q = f a
+      q s'
 
 -- | Combine two Maybe values together, producing the first
 -- successful result
