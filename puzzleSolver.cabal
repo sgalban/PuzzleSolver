@@ -22,6 +22,7 @@ library
   exposed-modules:
                        PuzzleSyntax,
                        PuzzleSolver,
+                       Parser,
                        PuzzleParser,
                        PuzzleCLI,
                        PuzzleEvaluator

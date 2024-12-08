@@ -203,7 +203,7 @@ parseCellGroup =
   <|> (keyword "subgrid" *> PuzzleParser.parens (Subgrid <$> parseNumExp <*> (keyword "," *> parseNumExp) <*> (keyword "," *> parseNumExp) <*> (keyword "," *> parseNumExp)))
   <|> (keyword "all" *> pure All)
   <|> (keyword "unconstrained" *> pure Unconstrained)
-  <|> (Parser.char '~' *> (Inverse <$> parseCellGroup)) 
+  <|> (Parser.char '~' *> (Inverse <$> parseCellGroup))
 
 testParseCellGroup :: Test
 testParseCellGroup = TestList
@@ -277,13 +277,13 @@ testParseConstraintRule = TestList
 
     -- Test for CC
     parse parseConstraintRule "constraints [unique(1 to 9), addsTo(15)] in col 2 from 0 to 3"
-      ~?= Right (CC (ConstrainedCells 
-                    (ConstraintList [Unique (Range (Number 1, Number 9)), AddsTo (Number 15)]) 
+      ~?= Right (CC (ConstrainedCells
+                    (ConstraintList [Unique (Range (Number 1, Number 9)), AddsTo (Number 15)])
                     (Col (Number 2) (Just (Range (Number 0, Number 3)))))),
 
     parse parseConstraintRule "constraints [greaterThan(1, 2), always] in subgrid(0,0,2,2)"
-      ~?= Right (CC (ConstrainedCells 
-                    (ConstraintList [GreaterThan (Number 1) (Number 2), Always]) 
+      ~?= Right (CC (ConstrainedCells
+                    (ConstraintList [GreaterThan (Number 1) (Number 2), Always])
                     (Subgrid (Number 0) (Number 0) (Number 2) (Number 2)))),
 
     -- Invalid inputs
@@ -529,21 +529,49 @@ testPrettyPrint = do
   putStrLn "\nTest 4: Complex grid with multiple nested repeats and constraints"
   putStrLn $ prettyPrint testPuzzle4
 
--- >>> testPrettyPrint
-
 prop_roundtrip :: PuzzleSyntax -> Property
 prop_roundtrip puzzle =
   let prettyStr = prettyPrint puzzle
+<<<<<<< HEAD
       parsed = parse parsePuzzle prettyStr 
   in case parsed of
        Left err -> 
+=======
+      parsed = parse parsePuzzle prettyStr
+  in --trace ("Testing puzzle: " ++ show puzzle) $  -- Print the puzzle before anything happens  -- Print the puzzle before anything happens
+       -- Print the puzzle before anything happens
+     --trace ("Pretty printed: " ++ prettyStr) $  -- Print the pretty string as well  -- Print the pretty string as well
+     case parsed of
+       Left err ->
+>>>>>>> 60ff5d82987d80b4c0e55cb54d3a645dce72fe94
          counterexample ("Parsing failed: " ++ show err) False
-       Right parsedPuzzle -> 
+       Right parsedPuzzle ->
          (parsedPuzzle == puzzle)  -- This is a Bool, which is automatically converted to a Property
          ==> parsedPuzzle == puzzle  -- This ensures that it gets turned into a Property
+
+testAll :: IO Counts
+testAll = runTestTT $ TestList [
+  testParseCellGroup,
+  testParseConstraint,
+  testParseConstraintList,
+  testParseConstraintRule,
+  testParseNumExp,
+  testParsePrimitiveConstraint,
+  testParsePuzzle,
+  testParseRange]
+
+testParseSample :: String -> PuzzleSyntax -> IO Counts
+testParseSample filename expected = do
+    code <- readFile filename
+    let parsed = parse parsePuzzle code
+    putStrLn ("\nTesting " ++ filename)
+    runTestTT (parsed ~?= Right expected)
 
 -- Main to Run Tests
 main' :: IO ()
 main' = do
   testPrettyPrint
+  _ <- testAll
+  _ <- testParseSample "samples/kakuro-small.pz" pKakSmall
   quickCheck prop_roundtrip
+  return ()
