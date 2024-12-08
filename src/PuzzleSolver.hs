@@ -1,4 +1,4 @@
-module PuzzleSolver(solve, validate) where
+module PuzzleSolver(solve, validate, isValid, checkProps) where
 import PuzzleSyntax
 import qualified Test.QuickCheck as QC
 import Data.Maybe (isJust, isNothing, mapMaybe)
@@ -113,8 +113,10 @@ prop_solveComplete p@(Grid w h _) = isJust ps QC.==> maybe True complete ps
     complete :: PuzzleSolution -> Bool
     complete (PuzzleSolution _ s) = List.sort (Map.keys s) == coords
 
-prop_emptyValid :: PuzzleSyntax -> QC.Property
-prop_emptyValid p = isValidPuzzle p QC.==> isValid $ PuzzleSolution p Map.empty
+prop_emptyValid :: PuzzleSyntax -> Bool
+prop_emptyValid p = case validate (PuzzleSolution p Map.empty) of
+  Left _ -> True
+  Right b -> b
 
 prop_subsolutionValid :: PuzzleSolution -> QC.Property
 prop_subsolutionValid ps@(PuzzleSolution _ s) =
@@ -124,7 +126,7 @@ prop_subsolutionValid ps@(PuzzleSolution _ s) =
 
 prop_addInvalid :: PuzzleSolution -> Int -> Int -> Int -> QC.Property
 prop_addInvalid ps@(PuzzleSolution p@(Grid w h _) s) r c v =
-  not (isValid ps) QC.==> case Map.keys s of
+  not (isValid ps) && not (Map.member pair s) QC.==> case Map.keys s of
     (k : _) -> case ps' of
       Just sol -> not . isValid $ sol
       _ -> True

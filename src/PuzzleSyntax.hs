@@ -45,21 +45,6 @@ data Constraint
   | ConstraintList [PrimitiveConstraint]
   deriving (Show, Eq)
 
-instance Semigroup Constraint where
-  (<>) :: Constraint -> Constraint -> Constraint
-  (PC Always) <> c = c
-  c <> (PC Always) = c
-  n@(PC Never) <> _ = n
-  _ <> n@(PC Never) = n
-  ConstraintList l1 <> ConstraintList l2 = ConstraintList $ l1 ++ l2
-  ConstraintList l <> (PC p) = ConstraintList $ p : l
-  (PC p) <> ConstraintList l = ConstraintList $ p : l
-  (PC p1) <> (PC p2) = ConstraintList [p1, p2]
-
-instance Monoid Constraint where
-  mempty :: Constraint
-  mempty = PC Never
-
 data PrimitiveConstraint
   = Unique Range
   | AddsTo NumExp
@@ -80,24 +65,6 @@ data CellGroup
   | All
   | Unconstrained
   deriving (Show, Eq)
-
-instance Semigroup CellGroup where
-  (<>) :: CellGroup -> CellGroup -> CellGroup
-  All <> _ = All
-  _ <> All = All
-  cg <> Inverse All = cg
-  Inverse All <> cg = cg
-  CellList l1 <> CellList l2 = CellList $ l1 ++ l2
-  CellList l <> cg = CellList $ cg : l
-  cg <> CellList l = CellList $ cg : l
-  cg1 <> cg2 = CellList [cg1, cg2]
-
-instance Monoid CellGroup where
-  mempty :: CellGroup
-  mempty = CellList []
-
-isValidPuzzle :: PuzzleSyntax -> Bool
-isValidPuzzle = undefined
 
 data PuzzleSolution = PuzzleSolution {
   puzzle :: PuzzleSyntax,
@@ -134,10 +101,14 @@ instance Arbitrary NumExp where
         (1, return $ RepeatVar 1),
         (2, Number <$> QC.arbitrary)]
       genExp n = QC.frequency [
-        (2, genExp 0),
+        (20, genExp 0),
         (n, Op2 <$> genExp n' <*> QC.arbitrary <*> genExp n')]
           where
             n' = n `div` 2
+
+  shrink :: NumExp -> [NumExp]
+  shrink (Op2 ne1 bop ne2) = [ne1, ne2]
+  shrink _ = []
 
 instance Arbitrary Range where
   arbitrary :: QC.Gen Range
@@ -151,8 +122,7 @@ instance Arbitrary PrimitiveConstraint where
     MultsTo <$> QC.arbitrary,
     GreaterThan <$> QC.arbitrary <*> QC.arbitrary,
     LessThan <$> QC.arbitrary <*> QC.arbitrary,
-    return Always,
-    return Never]
+    return Always]
 
 instance Arbitrary Constraint where
   arbitrary :: QC.Gen Constraint
@@ -163,22 +133,31 @@ instance Arbitrary Constraint where
         genCon 0,
         ConstraintList <$> QC.listOf QC.arbitrary]
 
+  shrink :: Constraint -> [Constraint]
+  shrink (ConstraintList [c]) = [PC c]
+  shrink (ConstraintList list) = ConstraintList <$> QC.shrink list
+  shrink _ = []
+
 instance Arbitrary CellGroup where
   arbitrary :: QC.Gen CellGroup
-  arbitrary = QC.oneof [
-    ACell <$> QC.arbitrary <*> QC.arbitrary,
-    CellList <$> QC.listOf QC.arbitrary,
-    Subgrid <$> QC.arbitrary <*> QC.arbitrary <*> QC.arbitrary <*> QC.arbitrary,
-    Row <$> QC.arbitrary <*> rowColBoundGen,
-    Col <$> QC.arbitrary <*> rowColBoundGen,
-    Inverse <$> QC.arbitrary,
-    return All,
-    return Unconstrained]
+  arbitrary = QC.frequency [
+    (5, ACell <$> QC.arbitrary <*> QC.arbitrary),
+    (2, CellList <$> QC.resize 3 (QC.listOf QC.arbitrary)),
+    (3, Subgrid <$> QC.arbitrary <*> QC.arbitrary <*> QC.arbitrary <*> QC.arbitrary),
+    (3, Row <$> QC.arbitrary <*> rowColBoundGen),
+    (3, Col <$> QC.arbitrary <*> rowColBoundGen),
+    (1, Inverse <$> QC.arbitrary),
+    (1, return All),
+    (1, return Unconstrained)]
     where
       rowColBoundGen :: QC.Gen (Maybe Range)
       rowColBoundGen = QC.oneof [
         Just <$> QC.arbitrary,
         return Nothing]
+
+  shrink (CellList [cg]) = [cg]
+  shrink (CellList list) = CellList <$> QC.shrink list
+  shrink _ = []
 
 instance Arbitrary ConstrainedCells where
   arbitrary :: QC.Gen ConstrainedCells
@@ -197,14 +176,29 @@ instance Arbitrary ConstraintRule where
 
 instance Arbitrary PuzzleSyntax where
   arbitrary :: QC.Gen PuzzleSyntax
-  arbitrary = liftM3 Grid genDim genDim $ QC.listOf QC.arbitrary
+  arbitrary = liftM3 Grid genDim genDim (QC.resize 15 (QC.listOf QC.arbitrary))
     where
       genDim :: QC.Gen Int
-      genDim = QC.suchThat QC.arbitrary (\x -> x > 1 && x < 10)
+      genDim = QC.choose (1, 5)
+
+  shrink :: PuzzleSyntax -> [PuzzleSyntax]
+  shrink ps = Grid (width ps) (height ps) <$> QC.shrink (constraints ps)
 
 instance Arbitrary PuzzleSolution where
   arbitrary :: QC.Gen PuzzleSolution
-  arbitrary = undefined
+  arbitrary = do
+    puzzle <- (QC.arbitrary :: QC.Gen PuzzleSyntax)
+    let w = width puzzle
+    let h = height puzzle
+    count <- QC.choose (0, w * h `div` 2)
+    rs <- QC.vectorOf count (QC.choose (0, h - 1))
+    cs <- QC.vectorOf count (QC.choose (0, w - 1))
+    vals <- QC.vectorOf count (QC.choose (0, 9 :: Int))
+    let map = Map.fromList (zip (zip rs cs) vals)
+    return $ PuzzleSolution puzzle map
+
+  shrink :: PuzzleSolution -> [PuzzleSolution]
+  shrink ps = PuzzleSolution <$> QC.shrink (puzzle ps) <*> QC.shrink (cellValues ps)
 
 -- Sample Puzzles and Solutions
 

@@ -545,7 +545,7 @@ prop_roundtrip puzzle =
          ==> parsedPuzzle == puzzle  -- This ensures that it gets turned into a Property
 
 -- Main to Run Tests
-main :: IO ()
-main = do
+main' :: IO ()
+main' = do
   testPrettyPrint
   quickCheck prop_roundtrip
