@@ -1,5 +1,5 @@
 module PuzzleEvaluator where
-import Puzzle qualified as PS
+import PuzzleSyntax qualified as PS
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.Set ((\\))
@@ -280,7 +280,7 @@ evalConstraintRule (PS.Repeat range cr) = do
         return $ nextScs <> restScs
 
 -- | Sets the initial context for a puzzle
-initialContext :: PS.Puzzle -> Context
+initialContext :: PS.PuzzleSyntax -> Context
 initialContext (PS.Grid w h _) = Context {
   repeatVars = Map.empty,
   constrainedCells = Set.empty,
@@ -304,7 +304,7 @@ runEval :: Context -> PEval a -> Either EvalError a
 runEval ctx ev = fst $ runIdentity (runStateT (runExceptT ev) ctx)
 
 -- | Converts a Puzzle (syntax) into a fully evaluated puzzle
-evaluatePuzzle :: PS.Puzzle -> Either EvalError PuzzleE
+evaluatePuzzle :: PS.PuzzleSyntax -> Either EvalError PuzzleE
 evaluatePuzzle p@(PS.Grid w h rules) = let
   initCtx = initialContext p;
   result = runEval initCtx (evaluateRules rules)

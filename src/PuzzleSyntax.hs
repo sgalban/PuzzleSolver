@@ -1,4 +1,4 @@
-module Puzzle where
+module PuzzleSyntax where
 import Test.QuickCheck (Arbitrary)
 import qualified Test.QuickCheck as QC
 import Control.Monad (liftM2, liftM3)
@@ -23,7 +23,7 @@ data Bop
 
 newtype Range = Range (NumExp, NumExp) deriving (Show, Eq)
 
-data Puzzle = Grid {
+data PuzzleSyntax = Grid {
   width :: Int,
   height :: Int,
   constraints :: [ConstraintRule]
@@ -96,11 +96,11 @@ instance Monoid CellGroup where
   mempty :: CellGroup
   mempty = CellList []
 
-isValidPuzzle :: Puzzle -> Bool
+isValidPuzzle :: PuzzleSyntax -> Bool
 isValidPuzzle = undefined
 
 data PuzzleSolution = PuzzleSolution {
-  puzzle :: Puzzle,
+  puzzle :: PuzzleSyntax,
   cellValues :: Map.Map (Int, Int) Int
   } deriving (Show, Eq)
 
@@ -195,8 +195,8 @@ instance Arbitrary ConstraintRule where
         (2, genConRule 0),
         (1, Repeat <$> QC.arbitrary <*> genConRule (n `div` 2))]
 
-instance Arbitrary Puzzle where
-  arbitrary :: QC.Gen Puzzle
+instance Arbitrary PuzzleSyntax where
+  arbitrary :: QC.Gen PuzzleSyntax
   arbitrary = liftM3 Grid genDim genDim $ QC.listOf QC.arbitrary
     where
       genDim :: QC.Gen Int
@@ -225,7 +225,7 @@ cell :: Int -> Int -> CellGroup
 cell a b = ACell (Number a) (Number b)
 
 -- | sudoku-small.pz
-pSudSmall :: Puzzle
+pSudSmall :: PuzzleSyntax
 pSudSmall = Grid 4 4 [
   Repeat (range 0 3) (CC $ ConstrainedCells (PC $ Unique $ range 1 4) (Row (RepeatVar 0) Nothing)),
   Repeat (range 0 3) (CC $ ConstrainedCells (PC $ Unique $ range 1 4) (Col (RepeatVar 0) Nothing)),
@@ -243,7 +243,7 @@ sSudSmall = PuzzleSolution pSudSmall $ toSolutionMap 4 [
   2, 3, 1, 4]
 
 -- | magicsquare.pz
-pMagSquare :: Puzzle
+pMagSquare :: PuzzleSyntax
 pMagSquare = Grid 3 3 [
   CC $ ConstrainedCells (PC $ Unique (range 1 9)) All,
   Repeat (range 0 2) (CC $ ConstrainedCells (PC $ AddsTo $ Number 15) (Row (RepeatVar 0) Nothing)),
@@ -262,7 +262,7 @@ sMagSquare = PuzzleSolution pMagSquare $ toSolutionMap 3 [
   6, 1, 8]
 
   -- | kakuro-small.pz
-pKakSmall :: Puzzle
+pKakSmall :: PuzzleSyntax
 pKakSmall = Grid 4 4 [
   CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 15)]) (Row (Number 0) (Just $ range 0 2)),
   CC $ ConstrainedCells (ConstraintList [Unique (range 1 9), AddsTo (Number 8)]) (Row (Number 1) (Just $ range 0 2)),

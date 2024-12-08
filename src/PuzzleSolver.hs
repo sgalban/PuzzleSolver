@@ -1,28 +1,28 @@
 module PuzzleSolver(solve, validate) where
-import Puzzle
+import PuzzleSyntax
 import qualified Test.QuickCheck as QC
 import Data.Maybe (isJust, isNothing)
 import qualified Data.List as List
 import qualified Data.Map as Map
 import Test.HUnit (Assertion, Counts, Test (..), assert, runTestTT, (~:), (~?=))
 
-solve :: Puzzle -> Maybe PuzzleSolution
+solve :: PuzzleSyntax -> Maybe PuzzleSolution
 solve puzzle = undefined
 
 validate :: PuzzleSolution -> Bool
 validate ps = undefined
 
-prop_solveSamePuzzle :: Puzzle -> QC.Property
+prop_solveSamePuzzle :: PuzzleSyntax -> QC.Property
 prop_solveSamePuzzle p = isJust ps QC.==> maybe True (\ps' -> puzzle ps' == p) ps
   where
     ps = solve p
 
-prop_solveValid :: Puzzle -> QC.Property
+prop_solveValid :: PuzzleSyntax -> QC.Property
 prop_solveValid p = isJust ps QC.==> maybe True validate ps
   where
     ps = solve p
 
-prop_solveComplete :: Puzzle -> QC.Property
+prop_solveComplete :: PuzzleSyntax -> QC.Property
 prop_solveComplete p@(Grid w h _) = isJust ps QC.==> maybe True complete ps
   where
     ps = solve p
@@ -30,7 +30,7 @@ prop_solveComplete p@(Grid w h _) = isJust ps QC.==> maybe True complete ps
     complete :: PuzzleSolution -> Bool
     complete (PuzzleSolution _ s) = List.sort (Map.keys s) == coords
 
-prop_emptyValid :: Puzzle -> QC.Property
+prop_emptyValid :: PuzzleSyntax -> QC.Property
 prop_emptyValid p = isValidPuzzle p QC.==> validate $ PuzzleSolution p Map.empty
 
 prop_subsolutionValid :: PuzzleSolution -> QC.Property

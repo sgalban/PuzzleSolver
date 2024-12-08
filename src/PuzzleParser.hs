@@ -3,7 +3,7 @@ module PuzzleParser where
 import Prelude hiding (filter)
 import Control.Applicative (Alternative(..))
 import Parser
-import Puzzle
+import PuzzleSyntax
 import Data.Char qualified as Char
 import Parser (Parser)
 import Parser qualified as P
@@ -299,7 +299,7 @@ testParseConstraintRule = TestList
 
 
 -- Parsing a grid (the puzzle)
-parsePuzzle :: Parser Puzzle
+parsePuzzle :: Parser PuzzleSyntax
 parsePuzzle =
   keyword "grid"
     *> (PuzzleParser.parens ((,) <$> parseInt <*> (keyword "," *> parseInt)))
@@ -466,38 +466,38 @@ prettyConstraintRule (CC cc) =
     prettyConstrainedCells cc
 
 
-prettyPuzzle :: Puzzle -> Doc
+prettyPuzzle :: PuzzleSyntax -> Doc
 prettyPuzzle (Grid w h rules) =
   text "grid" <+> Text.PrettyPrint.parens ((Text.PrettyPrint.int w <> comma) <+> Text.PrettyPrint.int h) <+> Text.PrettyPrint.braces (vcat (map prettyConstraintRule rules))
 
 
 -- Helper Function
-prettyPrint :: Puzzle -> String
+prettyPrint :: PuzzleSyntax -> String
 prettyPrint = render . prettyPuzzle
 
 
 -- Test Inputs
 
 -- Test 1: Basic grid with no constraints
-testPuzzle1 :: Puzzle
+testPuzzle1 :: PuzzleSyntax
 testPuzzle1 = Grid 3 3 []
 
 -- Test 2: Grid with a single cell initialization
-testPuzzle2 :: Puzzle
+testPuzzle2 :: PuzzleSyntax
 testPuzzle2 = Grid 4 4 [CellInit (ACell (Number 0) (Number 1)) (Number (-5))]
 
 -- >>> parse parsePuzzle (prettyPrint testPuzzle2)
 -- Right (Grid {width = 4, height = 4, constraints = [CellInit (ACell (Number 0) (Number 1)) (Number (-5))]})
 
 -- Test 3: Grid with constraints and a repeat rule
-testPuzzle3 :: Puzzle
+testPuzzle3 :: PuzzleSyntax
 testPuzzle3 = Grid 4 4
   [ CC (ConstrainedCells (PC (AddsTo (Number 10))) (Row (Number 0) Nothing)),
     Repeat (Range (Number 0, Number 2)) (CC (ConstrainedCells (PC Always) All))
   ]
 
 -- Test 4: Complex grid with multiple nested repeats and constraints
-testPuzzle4 :: Puzzle
+testPuzzle4 :: PuzzleSyntax
 testPuzzle4 = Grid 3 3
   [ CC (ConstrainedCells (PC (AddsTo (Number 15))) All),
     Repeat (Range (Number 0, Number 2)) (CC (ConstrainedCells (PC (AddsTo (Number 15))) (Row (RepeatVar 0) Nothing))),
@@ -531,7 +531,7 @@ testPrettyPrint = do
 
 -- >>> testPrettyPrint
 
-prop_roundtrip :: Puzzle -> Property
+prop_roundtrip :: PuzzleSyntax -> Property
 prop_roundtrip puzzle =
   let prettyStr = prettyPrint puzzle
       parsed = parse parsePuzzle prettyStr 

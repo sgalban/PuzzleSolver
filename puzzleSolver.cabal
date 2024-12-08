@@ -20,7 +20,7 @@ common common-stanza
 library
   import: common-stanza
   exposed-modules:
-                       Puzzle,
+                       PuzzleSyntax,
                        PuzzleSolver,
                        PuzzleParser,
                        PuzzleCLI,
@@ -32,7 +32,7 @@ executable puzzleSolver
   import: common-stanza
   main-is:             Main.hs
   other-modules:
-                       Puzzle,
+                       PuzzleSyntax,
                        PuzzleSolver,
                        Parser,
                        PuzzleParser,
