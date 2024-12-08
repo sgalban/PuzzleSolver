@@ -535,9 +535,7 @@ prop_roundtrip :: PuzzleSyntax -> Property
 prop_roundtrip puzzle =
   let prettyStr = prettyPrint puzzle
       parsed = parse parsePuzzle prettyStr 
-  in trace ("Testing puzzle: " ++ show puzzle) $  -- Print the puzzle before anything happens
-     trace ("Pretty printed: " ++ prettyStr) $  -- Print the pretty string as well
-     case parsed of
+  in case parsed of
        Left err -> 
          counterexample ("Parsing failed: " ++ show err) False
        Right parsedPuzzle -> 
