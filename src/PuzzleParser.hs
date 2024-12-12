@@ -201,6 +201,9 @@ parseCellGroup =
   <|> (keyword "row" *> (Row <$> parseNumExp <*> parseRowColRange))
   <|> (keyword "col" *> (Col <$> parseNumExp <*> parseRowColRange))
   <|> (keyword "subgrid" *> PuzzleParser.parens (Subgrid <$> parseNumExp <*> (keyword "," *> parseNumExp) <*> (keyword "," *> parseNumExp) <*> (keyword "," *> parseNumExp)))
+  <|> (keyword "subgrid" *> PuzzleParser.parens
+        (PuzzleParser.parens ((,) <$> parseNumExp <*> (keyword "," *> parseNumExp)) >>= \(r, c) ->
+         Subgrid r c <$> (keyword "," *> parseNumExp) <*> (keyword "," *> parseNumExp)))
   <|> (keyword "all" *> pure All)
   <|> (keyword "unconstrained" *> pure Unconstrained)
   <|> (Parser.char '~' *> (Inverse <$> parseCellGroup))
@@ -293,6 +296,8 @@ testParseConstraintRule = TestList
     parse parseConstraintRule "init with cell(1,1) 42"
       ~?= Left "No parses"
   ]
+-- >>> parse parseConstraintRule "constraints [greaterThan(1, 2), always] in subgrid((($0 * 2), ($1 * 2)), 2, 2)"
+-- Right (CC (ConstrainedCells {constraint = ConstraintList [GreaterThan (Number 1) (Number 2),Always], cellGroup = Subgrid (Op2 (RepeatVar 0) Times (Number 2)) (Op2 (RepeatVar 1) Times (Number 2)) (Number 2) (Number 2)}))
 
 -- >>> runTestTT testParseConstraintRule
 -- Counts {cases = 9, tried = 9, errors = 0, failures = 0}
@@ -353,30 +358,54 @@ testParsePuzzle = TestList
 --       "Binary Op Parser" ~: runTestTT testParseBop
 --     ]
 
+-- testInput :: String
+-- testInput = unlines
+--   [ "grid(3, 3) {"
+--   , "  constraint unique(1 to 9) in all"
+--   , ""
+--   , "  repeat(0, 2) {"
+--   , "    constraint addsTo(15) in row $0"
+--   , "  }"
+--   , ""
+--   , "  repeat(0, 2) {"
+--   , "    constraint addsTo(15) in col $0"
+--   , "  }"
+--   , ""
+--   , "  constraint addsTo(15) in cells [cell(0, 0), cell(1, 1), cell(2, 2)]"
+--   , "  constraint addsTo(15) in cells [cell(0, 2), cell(1, 1), cell(2, 0)]"
+--   , ""
+--   , "  init cell(0, 1) with 9"
+--   , "  init cell(1, 0) with 7"
+--   , "  init cell(1, 2) with 3"
+--   , "  init cell(2, 2) with 8"
+--   , "}"
+--   ]
+
 testInput :: String
 testInput = unlines
-  [ "grid(3, 3) {"
-  , "  constraint unique(1 to 9) in all"
-  , ""
-  , "  repeat(0, 2) {"
-  , "    constraint addsTo(15) in row $0"
+  [ "grid(4, 4) {"
+  , "  repeat(0, 3) {"
+  , "    constraint unique(1 to 4) in row $0"
+  , "  }"
+  , "  repeat(0, 3) {"
+  , "    constraint unique(1 to 4) in col $0"
+  , "  }"
+  , "  repeat(0, 1) {"
+  , "    repeat(0, 1) {"
+  , "        constraint unique(1 to 4) in subgrid((($0 * 2), ($1 * 2)), 2, 2)"
+  , "    }"
   , "  }"
   , ""
-  , "  repeat(0, 2) {"
-  , "    constraint addsTo(15) in col $0"
-  , "  }"
-  , ""
-  , "  constraint addsTo(15) in cells [cell(0, 0), cell(1, 1), cell(2, 2)]"
-  , "  constraint addsTo(15) in cells [cell(0, 2), cell(1, 1), cell(2, 0)]"
-  , ""
-  , "  init cell(0, 1) with 9"
-  , "  init cell(1, 0) with 7"
-  , "  init cell(1, 2) with 3"
-  , "  init cell(2, 2) with 8"
+  , "  init cell(0, 3) with 3"
+  , "  init cell(1, 1) with 4"
+  , "  init cell(2, 2) with 3"
+  , "  init cell(2, 3) with 2"
   , "}"
   ]
+
+
 -- >>> parse parsePuzzle testInput
--- Right (Grid {width = 3, height = 3, constraints = [CC (ConstrainedCells {constraint = PC (Unique (Range (Number 1,Number 9))), cellGroup = All}),Repeat (Range (Number 0,Number 2)) (CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = Row (RepeatVar 0) Nothing})),Repeat (Range (Number 0,Number 2)) (CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = Col (RepeatVar 0) Nothing})),CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = CellList [ACell (Number 0) (Number 0),ACell (Number 1) (Number 1),ACell (Number 2) (Number 2)]}),CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = CellList [ACell (Number 0) (Number 2),ACell (Number 1) (Number 1),ACell (Number 2) (Number 0)]}),CellInit (ACell (Number 0) (Number 1)) (Number 9),CellInit (ACell (Number 1) (Number 0)) (Number 7),CellInit (ACell (Number 1) (Number 2)) (Number 3),CellInit (ACell (Number 2) (Number 2)) (Number 8)]})
+-- Right (Grid {width = 4, height = 4, constraints = [Repeat (Range (Number 0,Number 3)) (CC (ConstrainedCells {constraint = PC (Unique (Range (Number 1,Number 4))), cellGroup = Row (RepeatVar 0) Nothing})),Repeat (Range (Number 0,Number 3)) (CC (ConstrainedCells {constraint = PC (Unique (Range (Number 1,Number 4))), cellGroup = Col (RepeatVar 0) Nothing})),Repeat (Range (Number 0,Number 1)) (Repeat (Range (Number 0,Number 1)) (CC (ConstrainedCells {constraint = PC (Unique (Range (Number 1,Number 4))), cellGroup = Subgrid (Op2 (RepeatVar 0) Times (Number 2)) (Op2 (RepeatVar 1) Times (Number 2)) (Number 2) (Number 2)}))),CellInit (ACell (Number 0) (Number 3)) (Number 3),CellInit (ACell (Number 1) (Number 1)) (Number 4),CellInit (ACell (Number 2) (Number 2)) (Number 3),CellInit (ACell (Number 2) (Number 3)) (Number 2)]})
 
 testConstraintRule :: String
 testConstraintRule = "repeat(0, 2) { constraint addsTo(15) in row $0 }"
@@ -532,18 +561,12 @@ testPrettyPrint = do
 prop_roundtrip :: PuzzleSyntax -> Property
 prop_roundtrip puzzle =
   let prettyStr = prettyPrint puzzle
-<<<<<<< HEAD
-      parsed = parse parsePuzzle prettyStr 
-  in case parsed of
-       Left err -> 
-=======
       parsed = parse parsePuzzle prettyStr
   in --trace ("Testing puzzle: " ++ show puzzle) $  -- Print the puzzle before anything happens  -- Print the puzzle before anything happens
        -- Print the puzzle before anything happens
      --trace ("Pretty printed: " ++ prettyStr) $  -- Print the pretty string as well  -- Print the pretty string as well
      case parsed of
        Left err ->
->>>>>>> 60ff5d82987d80b4c0e55cb54d3a645dce72fe94
          counterexample ("Parsing failed: " ++ show err) False
        Right parsedPuzzle ->
          (parsedPuzzle == puzzle)  -- This is a Bool, which is automatically converted to a Property
@@ -573,5 +596,6 @@ main' = do
   testPrettyPrint
   _ <- testAll
   _ <- testParseSample "samples/kakuro-small.pz" pKakSmall
+  _ <- testParseSample "samples/magicsquare.pz" pMagSquare
   quickCheck prop_roundtrip
   return ()
