@@ -135,6 +135,7 @@ prop_addInvalid ps@(PuzzleSolution p@(Grid w h _) s) r c v =
       pair = (r `mod` h, c `mod` h)
       ps' = putCellValue ps pair v
 
+test_solve :: Test
 test_solve =
   "Testing Solver"
     ~: TestList

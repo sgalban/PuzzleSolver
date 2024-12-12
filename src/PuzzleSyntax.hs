@@ -90,96 +90,126 @@ removeCellValue (PuzzleSolution p s) coord@(row, col) =
 
 instance Arbitrary Bop where
   arbitrary :: QC.Gen Bop
-  arbitrary = QC.arbitraryBoundedEnum
+  arbitrary = QC.frequency [
+    (4, pure Plus),
+    (1, pure Minus),
+    (4, pure Times),
+    (1, pure Divide),
+    (1, pure Modulo),
+    (1, pure Power)]
+
+genNumExp :: Bool -> QC.Gen NumExp
+genNumExp inRepeat = QC.resize 5 $ QC.sized genExp
+  where
+    genExp 0 = QC.frequency [
+      (if inRepeat then 1 else 0, return $ RepeatVar 0),
+      (if inRepeat then 1 else 0, return $ RepeatVar 1),
+      (4, Number . abs <$> QC.arbitrary)]
+    genExp n = QC.frequency [
+      (20, genExp 0),
+      (n, Op2 <$> genExp n' <*> QC.arbitrary <*> genExp n')]
+        where
+          n' = n `div` 2
 
 instance Arbitrary NumExp where
   arbitrary :: QC.Gen NumExp
-  arbitrary = QC.sized genExp
-    where
-      genExp 0 = QC.frequency [
-        (1, return $ RepeatVar 0),
-        (1, return $ RepeatVar 1),
-        (2, Number <$> QC.arbitrary)]
-      genExp n = QC.frequency [
-        (20, genExp 0),
-        (n, Op2 <$> genExp n' <*> QC.arbitrary <*> genExp n')]
-          where
-            n' = n `div` 2
+  arbitrary = genNumExp True
 
   shrink :: NumExp -> [NumExp]
   shrink (Op2 ne1 bop ne2) = [ne1, ne2]
   shrink _ = []
 
+genRange :: Bool -> QC.Gen Range
+genRange inRepeat = liftM2 (curry Range) (genNumExp inRepeat) (genNumExp inRepeat)
+
 instance Arbitrary Range where
   arbitrary :: QC.Gen Range
-  arbitrary = liftM2 (curry Range) QC.arbitrary QC.arbitrary
+  arbitrary = genRange True
+
+genPC :: Bool -> QC.Gen PrimitiveConstraint
+genPC inRepeat = QC.oneof [
+  Unique <$> genRange inRepeat,
+  AddsTo <$> genNumExp inRepeat,
+  MultsTo <$> genNumExp inRepeat,
+  GreaterThan <$> genNumExp inRepeat <*> genNumExp inRepeat,
+  LessThan <$> genNumExp inRepeat <*> genNumExp inRepeat,
+  return Always]
 
 instance Arbitrary PrimitiveConstraint where
   arbitrary :: QC.Gen PrimitiveConstraint
-  arbitrary = QC.oneof [
-    Unique <$> QC.arbitrary,
-    AddsTo <$> QC.arbitrary,
-    MultsTo <$> QC.arbitrary,
-    GreaterThan <$> QC.arbitrary <*> QC.arbitrary,
-    LessThan <$> QC.arbitrary <*> QC.arbitrary,
-    return Always]
+  arbitrary = genPC True
+
+genCon :: Bool -> QC.Gen Constraint
+genCon inRepeat = QC.sized genCon'
+  where
+    genCon' 0 = PC <$> genPC inRepeat
+    genCon' n = QC.oneof [
+      genCon' 0,
+      ConstraintList <$> QC.resize 3 (QC.listOf (genPC inRepeat))]
 
 instance Arbitrary Constraint where
   arbitrary :: QC.Gen Constraint
-  arbitrary = QC.sized genCon
-    where
-      genCon 0 = PC <$> QC.arbitrary
-      genCon n = QC.oneof [
-        genCon 0,
-        ConstraintList <$> QC.listOf QC.arbitrary]
+  arbitrary = genCon True
 
   shrink :: Constraint -> [Constraint]
   shrink (ConstraintList [c]) = [PC c]
   shrink (ConstraintList list) = ConstraintList <$> QC.shrink list
   shrink _ = []
 
+genCG :: Bool -> QC.Gen CellGroup
+genCG inRepeat = QC.frequency [
+  (5, ACell <$> genNE <*> genNE),
+  (2, CellList <$> QC.resize 3 (QC.listOf (genCG inRepeat))),
+  (3, Subgrid <$> genNE <*> genNE <*> genNE <*> genNE),
+  (3, Row <$> genNE <*> rowColBoundGen),
+  (3, Col <$> genNE <*> rowColBoundGen),
+  (1, Inverse <$> genCG inRepeat),
+  (1, return All),
+  (1, return Unconstrained)]
+  where
+    rowColBoundGen :: QC.Gen (Maybe Range)
+    rowColBoundGen = QC.oneof [
+      Just <$> genRange inRepeat,
+      return Nothing]
+    genNE = genNumExp inRepeat
+
 instance Arbitrary CellGroup where
   arbitrary :: QC.Gen CellGroup
-  arbitrary = QC.frequency [
-    (5, ACell <$> QC.arbitrary <*> QC.arbitrary),
-    (2, CellList <$> QC.resize 3 (QC.listOf QC.arbitrary)),
-    (3, Subgrid <$> QC.arbitrary <*> QC.arbitrary <*> QC.arbitrary <*> QC.arbitrary),
-    (3, Row <$> QC.arbitrary <*> rowColBoundGen),
-    (3, Col <$> QC.arbitrary <*> rowColBoundGen),
-    (1, Inverse <$> QC.arbitrary),
-    (1, return All),
-    (1, return Unconstrained)]
-    where
-      rowColBoundGen :: QC.Gen (Maybe Range)
-      rowColBoundGen = QC.oneof [
-        Just <$> QC.arbitrary,
-        return Nothing]
+  arbitrary = genCG True
 
+  shrink :: CellGroup -> [CellGroup]
   shrink (CellList [cg]) = [cg]
   shrink (CellList list) = CellList <$> QC.shrink list
   shrink _ = []
 
+genCC :: Bool -> QC.Gen ConstrainedCells
+genCC inRepeat = liftM2 ConstrainedCells (genCon inRepeat) (genCG inRepeat)
+
 instance Arbitrary ConstrainedCells where
   arbitrary :: QC.Gen ConstrainedCells
-  arbitrary = liftM2 ConstrainedCells QC.arbitrary QC.arbitrary
+  arbitrary = genCC True
+
+genCR :: Bool -> QC.Gen ConstraintRule
+genCR inRepeat' = QC.sized (genConRule inRepeat')
+    where
+      genConRule :: Bool -> Int -> QC.Gen ConstraintRule
+      genConRule inRepeat 0 = QC.oneof [
+        CellInit <$> genCG inRepeat <*> genNumExp inRepeat,
+        CC <$> genCC inRepeat]
+      genConRule inRepeat n = QC.frequency [
+        (2, genConRule inRepeat 0),
+        (1, Repeat <$> genRange inRepeat <*> genConRule False (n `div` 2))]
 
 instance Arbitrary ConstraintRule where
   arbitrary :: QC.Gen ConstraintRule
-  arbitrary = QC.sized genConRule
-    where
-      genConRule 0 = QC.oneof [
-        CellInit <$> QC.arbitrary <*> QC.arbitrary,
-        CC <$> QC.arbitrary]
-      genConRule n = QC.frequency [
-        (2, genConRule 0),
-        (1, Repeat <$> QC.arbitrary <*> genConRule (n `div` 2))]
+  arbitrary = genCR True
 
 instance Arbitrary PuzzleSyntax where
   arbitrary :: QC.Gen PuzzleSyntax
-  arbitrary = liftM3 Grid genDim genDim (QC.resize 15 (QC.listOf QC.arbitrary))
+  arbitrary = liftM3 Grid genDim genDim (QC.resize 15 (QC.listOf (genCR False)))
     where
       genDim :: QC.Gen Int
-      genDim = QC.choose (1, 5)
+      genDim = QC.choose (2, 5)
 
   shrink :: PuzzleSyntax -> [PuzzleSyntax]
   shrink ps = Grid (width ps) (height ps) <$> QC.shrink (constraints ps)

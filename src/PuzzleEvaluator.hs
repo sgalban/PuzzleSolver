@@ -8,6 +8,10 @@ import Control.Monad.Except ( MonadError(throwError), ExceptT, runExceptT )
 import Control.Monad.State ( StateT, MonadState(get), modify, runStateT)
 import Control.Monad.Identity (Identity, runIdentity, IdentityT (runIdentityT))
 import Test.HUnit (Counts, Test (..), runTestTT, (~:), (~?=))
+import qualified Test.QuickCheck as QC
+import Test.QuickCheck (Arbitrary)
+import Control.Monad (liftM2)
+import Data.Either (isRight, fromRight)
 
 -- | A simplified representation of a puzzle containing the actual constraints
 -- | and the raw collection of cells they affect
@@ -66,6 +70,11 @@ type PEval a = ExceptT EvalError (StateT Context Identity) a
 -- | Convenince function to make a singleton set
 ss :: a -> Set.Set a
 ss = Set.singleton
+
+-- | Generates the set of all possible cell coordinates for a grid with the
+-- | given width and height
+allCells :: Int -> Int -> Set.Set (Int, Int)
+allCells w h = Set.fromList [(r, c) | r <- [0..(h - 1)], c <- [0..(w- 1)]]
 
 -- | Evaluate a repeat var. Throws if we're not a repeat rule
 evalRepeatVar :: Int -> PEval Int
@@ -192,9 +201,8 @@ evalCellGroup cg = do
         else return (Set.fromList [(r, col) | r <- rows], ctx)
 
     go PS.All ctx = do
-      let rows = [0..(puzzleHeight ctx - 1)]
-      let cols = [0..(puzzleWidth ctx - 1)]
-      return (Set.fromList [(r, c) | r <- rows, c <- cols], ctx)
+      let cells = allCells (puzzleWidth ctx) (puzzleHeight ctx)
+      return (cells, ctx)
 
     go PS.Unconstrained ctx = do
       let constrained = constrainedCells ctx
@@ -250,7 +258,9 @@ evalConstraintRule :: PS.ConstraintRule -> PEval (Set.Set ConstraintE)
 evalConstraintRule (PS.CellInit cg valExp) = do
   cells <- evalCellGroup cg
   val <- evalNumExp valExp
-  return $ ss (CE (Value val) cells)
+  if Set.null cells
+    then return Set.empty
+    else return $ ss (CE (Value val) cells)
 evalConstraintRule (PS.CC ccs) = evalConstrainedCells ccs
 evalConstraintRule (PS.Repeat range cr) = do
   (start, end) <- evalRange range
@@ -317,6 +327,15 @@ evaluatePuzzle p@(PS.Grid w h rules) = let
       headRules <- evalConstraintRule cr
       tailRules <- evaluateRules crs
       return (headRules <> tailRules)
+
+-- | Creates a mapping from every cell in the grid to the set of constraints
+-- | that apply to them
+cellConstraints :: PuzzleE -> Map.Map (Int, Int) (Set.Set ConstraintE)
+cellConstraints (PE w h cs) = foldr invertConstraint initMap cs
+  where
+    initMap = Map.fromList [(k, Set.empty) | k <- Set.toList (allCells w h)]
+    invertConstraint con acc = foldr (addCellToMap con) acc (cells con)
+    addCellToMap con cell = Map.insertWith (<>) cell (ss con)
 
 -- | Evaluation Tests
 
@@ -531,3 +550,58 @@ testAll = runTestTT $ TestList [
 
 -- >>> testAll
 -- Counts {cases = 53, tried = 53, errors = 0, failures = 0}
+
+instance Arbitrary PuzzleE where
+  arbitrary :: QC.Gen PuzzleE
+  arbitrary = do
+    w <- QC.choose (3, 6)
+    h <- QC.choose (3, 6)
+    cons <- Set.fromList <$> QC.listOf (arbCons w h) 
+    return (PE w h cons)
+    where
+      arbCons w h = CE <$> QC.arbitrary <*> (Set.fromList <$> QC.listOf (arbPair w h))
+      arbPair w h = liftM2 (,) (QC.choose (0, h - 1)) (QC.choose (0, w - 1))
+      cells w h = QC.suchThat (QC.listOf (arbPair w h)) (not . null)
+
+  shrink :: PuzzleE -> [PuzzleE]
+  shrink pe = case Set.toList $ constraints pe of
+    (x : xs) -> [PE (width pe) (height pe) (Set.fromList xs)]
+    _ -> []
+
+instance Arbitrary ConstraintEType where
+  arbitrary :: QC.Gen ConstraintEType
+  arbitrary = QC.oneof [
+    liftM2 (curry Unique) arbInt arbInt,
+    AddsTo <$> arbInt,
+    MultsTo <$> arbInt,
+    GreaterThan <$> arbInt <*> arbInt,
+    LessThan <$> arbInt <*> arbInt,
+    pure Always,
+    pure Never,
+    Value <$> arbInt]
+    where
+      arbInt = QC.choose (1, 9)
+
+prop_noEmptyCellGroups :: PS.PuzzleSyntax -> QC.Property
+prop_noEmptyCellGroups ps = isRight pe QC.==> not (any (Set.null . cells) (constraints pe'))
+  where
+    pe = evaluatePuzzle ps
+    pe' = fromRight (PE 0 0 Set.empty) pe
+
+prop_inverseConstraints :: PuzzleE -> QC.Property
+prop_inverseConstraints pe = not (Set.null (constraints pe)) QC.==>
+  Set.fromList (Map.keys cellMap) == cells' &&
+  all (\con -> all (`hasCon` con) (cells con)) (constraints pe) &&
+  all (\cell -> all (Set.member cell . cells) (cellMap Map.! cell) ) cells'
+    where
+      cells' = allCells (width pe) (height pe)
+      cellMap = cellConstraints pe
+      hasCon cell con = Set.member con (cellMap Map.! cell)
+
+runTests :: IO ()
+runTests = do
+  _ <- testAll
+  putStrLn "quickCheck prop_noEmptyCellGroups"
+  QC.quickCheck prop_noEmptyCellGroups
+  putStrLn "quickCheck prop_inverseConstraints"
+  QC.quickCheck prop_inverseConstraints 
