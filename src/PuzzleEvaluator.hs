@@ -508,10 +508,86 @@ testEvalRepeat =
 -- >>> runTestTT testEvalRepeat
 -- Counts {cases = 4, tried = 4, errors = 0, failures = 0}
 
+eSudSmall :: PuzzleE
+eSudSmall = PE 4 4 (Set.fromList [
+  CE (Unique (1, 4)) (Set.fromList [(0, c) | c <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(1, c) | c <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(2, c) | c <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(3, c) | c <- [0..3]]),
+
+  CE (Unique (1, 4)) (Set.fromList [(r, 0) | r <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(r, 1) | r <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(r, 2) | r <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(r, 3) | r <- [0..3]]),
+
+  CE (Unique (1, 4)) (Set.fromList [(0, 0), (0, 1), (1, 0), (1, 1)]),
+  CE (Unique (1, 4)) (Set.fromList [(2, 0), (2, 1), (3, 0), (3, 1)]),
+  CE (Unique (1, 4)) (Set.fromList [(0, 2), (0, 3), (1, 2), (1, 3)]),
+  CE (Unique (1, 4)) (Set.fromList [(2, 2), (2, 3), (3, 2), (3, 3)]),
+
+  CE (Value 3) (ss (0, 3)),
+  CE (Value 4) (ss (1, 1)),
+  CE (Value 3) (ss (2, 2)),
+  CE (Value 2) (ss (2, 3))])
+
+eMagSquare :: PuzzleE
+eMagSquare = PE 3 3 (Set.fromList [
+  CE (Unique (1, 9)) (Set.fromList [(r, c) | r <- [0..2], c <- [0..2]]),
+
+  CE (AddsTo 15) (Set.fromList [(0, c) | c <- [0..2]]),
+  CE (AddsTo 15) (Set.fromList [(1, c) | c <- [0..2]]),
+  CE (AddsTo 15) (Set.fromList [(2, c) | c <- [0..2]]),
+
+  CE (AddsTo 15) (Set.fromList [(r, 0) | r <- [0..2]]),
+  CE (AddsTo 15) (Set.fromList [(r, 1) | r <- [0..2]]),
+  CE (AddsTo 15) (Set.fromList [(r, 2) | r <- [0..2]]),
+
+  CE (AddsTo 15) (Set.fromList [(v, v) | v <- [0..2]]),
+  CE (AddsTo 15) (Set.fromList [(v, 2 - v) | v <- [0..2]]),
+
+  CE (Value 9) (ss (0, 1)),
+  CE (Value 7) (ss (1, 0)),
+  CE (Value 3) (ss (1, 2)),
+  CE (Value 8) (ss (2, 2))])
+
+eKakSmall :: PuzzleE
+eKakSmall = PE 4 4 (Set.fromList [
+  CE (Unique (1, 9)) (Set.fromList [(0, c) | c <- [0..2]]),
+  CE (AddsTo 15) (Set.fromList [(0, c) | c <- [0..2]]),
+
+  CE (Unique (1, 9)) (Set.fromList [(1, c) | c <- [0..2]]),
+  CE (AddsTo 8) (Set.fromList [(1, c) | c <- [0..2]]),
+
+  CE (Unique (1, 9)) (Set.fromList [(2, c) | c <- [1..3]]),
+  CE (AddsTo 15) (Set.fromList [(2, c) | c <- [1..3]]),
+
+  CE (Unique (1, 9)) (Set.fromList [(3, c) | c <- [1..3]]),
+  CE (AddsTo 19) (Set.fromList [(3, c) | c <- [1..3]]),
+
+  CE (Unique (1, 9)) (Set.fromList [(r, 0) | r <- [0..1]]),
+  CE (AddsTo 11) (Set.fromList [(r, 0) | r <- [0..1]]),
+
+  CE (Unique (1, 9)) (Set.fromList [(r, 1) | r <- [0..3]]),
+  CE (AddsTo 16) (Set.fromList [(r, 1) | r <- [0..3]]),
+
+  CE (Unique (1, 9)) (Set.fromList [(r, 2) | r <- [0..3]]),
+  CE (AddsTo 17) (Set.fromList [(r, 2) | r <- [0..3]]),
+
+  CE (Unique (1, 9)) (Set.fromList [(r, 3) | r <- [2..3]]),
+  CE (AddsTo 13) (Set.fromList [(r, 3) | r <- [2..3]]),
+
+  CE (Value 3) (ss (0, 2)),
+  CE (Value 1) (ss (1, 1)),
+  CE (Value 2) (ss (2, 2)),
+  CE (Value 2) (ss (3, 1)),
+
+  CE (Value 0) (Set.fromList [(0, 3), (1, 3), (2, 0), (3, 0)])])
+
 testEvalPuzzle :: Test
 testEvalPuzzle =
   "testEvalPuzzle"
   ~: TestList [
+<<<<<<< HEAD
     evaluatePuzzle PS.pSudSmall ~?= Right (PE 4 4 (Set.fromList [
       CE (Unique (1, 4)) (Set.fromList [(0, c) | c <- [0..3]]),
       CE (Unique (1, 4)) (Set.fromList [(1, c) | c <- [0..3]]),
@@ -533,10 +609,15 @@ testEvalPuzzle =
       CE (Value 3) (ss (2, 2)),
       CE (Value 2) (ss (2, 3))
     ]))
+=======
+    evaluatePuzzle PS.pSudSmall ~?= Right eSudSmall,
+    evaluatePuzzle PS.pMagSquare ~?= Right eMagSquare,
+    evaluatePuzzle PS.pKakSmall ~?= Right eKakSmall
+>>>>>>> f6b7262 (Move PuzzleSolution to PuzzleSolver.hs)
   ]
 
 -- >>> runTestTT testEvalPuzzle
--- Counts {cases = 1, tried = 1, errors = 0, failures = 0}
+-- Counts {cases = 3, tried = 3, errors = 0, failures = 0}
 
 testAll :: IO Counts
 testAll = runTestTT $ TestList [

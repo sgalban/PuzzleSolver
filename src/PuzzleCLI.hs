@@ -1,5 +1,6 @@
 module PuzzleCLI where
-import PuzzleSyntax (PuzzleSyntax, PuzzleSolution (puzzle))
+import PuzzleSyntax qualified as PS
+import PuzzleSolver ( PuzzleSolution )
 import Data.Maybe (fromMaybe)
 import Data.List qualified as List
 

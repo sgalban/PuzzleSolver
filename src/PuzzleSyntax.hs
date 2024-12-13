@@ -66,26 +66,6 @@ data CellGroup
   | Unconstrained
   deriving (Show, Eq)
 
-data PuzzleSolution = PuzzleSolution {
-  puzzle :: PuzzleSyntax,
-  cellValues :: Map.Map (Int, Int) Int
-  } deriving (Show, Eq)
-
--- | Sets a value in a PuzzleSolution at the specified coordinate. If a value
--- | already exists at that coordinate, it will be overridden
--- | Fails if the coordinate is not in the bounds of the puzzle
-putCellValue :: PuzzleSolution -> (Int, Int) -> Int -> Maybe PuzzleSolution
-putCellValue (PuzzleSolution p s) coord@(row, col) val =
-  if row > 0 && col > 0 && row < height p && col < width p
-    then Just $ PuzzleSolution p (Map.insert coord val s)
-    else Nothing
-
--- | Removes the value of the solution at the specified coordinate.
--- | If the coordinate does not exist in the solution, this is a no-op
-removeCellValue :: PuzzleSolution -> (Int, Int) -> PuzzleSolution
-removeCellValue (PuzzleSolution p s) coord@(row, col) =
-  PuzzleSolution p (Map.delete coord s)
-
 -- QuickCheck instances
 
 instance Arbitrary Bop where
@@ -214,31 +194,7 @@ instance Arbitrary PuzzleSyntax where
   shrink :: PuzzleSyntax -> [PuzzleSyntax]
   shrink ps = Grid (width ps) (height ps) <$> QC.shrink (constraints ps)
 
-instance Arbitrary PuzzleSolution where
-  arbitrary :: QC.Gen PuzzleSolution
-  arbitrary = do
-    puzzle <- (QC.arbitrary :: QC.Gen PuzzleSyntax)
-    let w = width puzzle
-    let h = height puzzle
-    count <- QC.choose (0, w * h `div` 2)
-    rs <- QC.vectorOf count (QC.choose (0, h - 1))
-    cs <- QC.vectorOf count (QC.choose (0, w - 1))
-    vals <- QC.vectorOf count (QC.choose (0, 9 :: Int))
-    let map = Map.fromList (zip (zip rs cs) vals)
-    return $ PuzzleSolution puzzle map
-
-  shrink :: PuzzleSolution -> [PuzzleSolution]
-  shrink ps = PuzzleSolution <$> QC.shrink (puzzle ps) <*> QC.shrink (cellValues ps)
-
--- Sample Puzzles and Solutions
-
--- | Transforms a list of numbers into a grid of numbers, given the width of the
--- | grid. This will make it easier to define the hardcoded puzzle solutions
-toSolutionMap :: Int -> [a] -> Map.Map (Int, Int) a
-toSolutionMap cols values = Map.fromList (solList values)
-  where
-    solList :: [a] -> [((Int, Int), a)]
-    solList = zipWith (\i v -> ((i `div` cols, i `mod` cols), v)) [0..]
+-- Sample Puzzles
 
 -- | A couple of functions to make hardcoding puzzles less verbose
 
@@ -259,13 +215,6 @@ pSudSmall = Grid 4 4 [
   CellInit (cell 2 2) (Number 3),
   CellInit (cell 2 3) (Number 2)]
 
-sSudSmall :: PuzzleSolution
-sSudSmall = PuzzleSolution pSudSmall $ toSolutionMap 4 [
-  1, 2, 4, 3,
-  3, 4, 2, 1,
-  4, 1, 3, 2,
-  2, 3, 1, 4]
-
 -- | magicsquare.pz
 pMagSquare :: PuzzleSyntax
 pMagSquare = Grid 3 3 [
@@ -278,12 +227,6 @@ pMagSquare = Grid 3 3 [
   CellInit (cell 1 0) (Number 7),
   CellInit (cell 1 2) (Number 3),
   CellInit (cell 2 2) (Number 8)]
-
-sMagSquare :: PuzzleSolution
-sMagSquare = PuzzleSolution pMagSquare $ toSolutionMap 3 [
-  2, 9, 4,
-  7, 5, 3,
-  6, 1, 8]
 
   -- | kakuro-small.pz
 pKakSmall :: PuzzleSyntax
@@ -301,10 +244,3 @@ pKakSmall = Grid 4 4 [
   CellInit (cell 2 2) (Number 2),
   CellInit (cell 3 1) (Number 2),
   CellInit Unconstrained (Number 0)]
-
-sKakSmall :: PuzzleSolution
-sKakSmall = PuzzleSolution pKakSmall $ toSolutionMap 4 [
-  8, 4, 3, 0,
-  3, 1, 4, 0,
-  0, 9, 2, 4,
-  0, 2, 8, 9]
