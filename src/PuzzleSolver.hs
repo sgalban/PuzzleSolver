@@ -1,16 +1,17 @@
 module PuzzleSolver(solve, validate, checkProps, PuzzleSolution) where
 import qualified PuzzleSyntax as PS
 import qualified Test.QuickCheck as QC
-import Data.Maybe (isJust, isNothing, mapMaybe)
+import Data.Maybe (isJust, isNothing, mapMaybe, fromMaybe)
 import qualified Data.List as List
 import qualified Data.Map as Map
+import Data.Map ((!?))
 import Test.HUnit (Assertion, Counts, Test (..), assert, runTestTT, (~:), (~?=))
-import PuzzleEvaluator (evaluatePuzzle, EvalError, PuzzleE, ConstraintE (CE))
 import qualified PuzzleEvaluator as PE
 import qualified Data.Set as Set
+import Data.Either (isRight)
+import GHC.Base (Alternative((<|>)))
 
-valueAt :: PuzzleSolution -> (Int, Int) -> Maybe Int
-valueAt ps coord = cellValues ps Map.!? coord
+type Cell = (Int, Int)
 
 -- | A (potentially partial) solution for a puzzle
 data PuzzleSolution = PuzzleSolution {
@@ -39,8 +40,7 @@ valueAt ps coord = cellValues ps !? coord
 valuesIn :: PuzzleSolution -> Set.Set Cell -> [Int]
 valuesIn ps cg = mapMaybe (valueAt ps) (Set.toList cg)
 
-solve :: PuzzleSyntax -> Maybe PuzzleSolution
-solve puzzle = undefined
+-- | Validate Implementation
 
 -- | Determines if the cell values make for a valid (partial) solution
 validate :: PuzzleSolution -> Bool
@@ -51,21 +51,25 @@ validate ps = not (hasOobCell || hasViolatedConstraint)
     ph = PE.height pe
     cellIsOob (r, c) = r < 0 || r >= ph || c < 0 || c >= pw
     hasOobCell = any cellIsOob (Map.keys (cellValues ps))
-    hasViolatedConstraint = any (constraintViolated ps) (PE.constraints pe)
+    hasViolatedConstraint = not $ all (constraintUnviolated ps) (PE.constraints pe)
+
+isComplete :: PuzzleSolution -> Bool
+isComplete (PuzzleSolution (PE.PE w h _) cellVals) =
+  PE.allCells w h == Map.keysSet cellVals
 
 -- | Determines if a particular constraint is unviolated. The rules used to
 -- | determine what qualifies as a violation varies from constraint to
 -- | constraint
-constraintViolated :: PuzzleSolution -> ConstraintE -> Bool
+constraintUnviolated :: PuzzleSolution -> PE.ConstraintE -> Bool
 -- | Always valid
-constraintViolated _ (CE PE.Always _) = True
+constraintUnviolated _ (PE.CE PE.Always _) = True
 -- | Never valid
-constraintViolated _ (CE PE.Never _) = False
+constraintUnviolated _ (PE.CE PE.Never _) = False
 -- | Valid if all non-empty cells match the value
-constraintViolated ps (CE (PE.Value val) cg) = all ( == val) (valuesIn ps cg)
+constraintUnviolated ps (PE.CE (PE.Value val) cg) = all ( == val) (valuesIn ps cg)
 -- | Valid if all non-empty cells have values within the range, and there are
 -- | no duplicate (non-empty) values in the group
-constraintViolated ps (CE (PE.Unique (from, to)) cg) = allInRange && allUnique
+constraintUnviolated ps (PE.CE (PE.Unique (from, to)) cg) = allInRange && allUnique
   where
     values = valuesIn ps cg
     allInRange = all (\x -> x >= from && x <= to) values
@@ -73,26 +77,26 @@ constraintViolated ps (CE (PE.Unique (from, to)) cg) = allInRange && allUnique
 -- | Valid if either there's at least one non-empty cell in the group and the
 -- | sum of the values in the non-empty cells is less than the target sum, or
 -- | every cell in the group is non-empty and the the sum is exactly the target
-constraintViolated ps (CE (PE.AddsTo sum') cg) =
-  totalConstraintViolated sum ps sum' cg
+constraintUnviolated ps (PE.CE (PE.AddsTo sum') cg) =
+  totalconstraintUnviolated sum ps sum' cg
 -- | Valid if either there's at least one non-empty cell in the group and the
--- | produc of the values in the non-empty cells is less than the target
+-- | product of the values in the non-empty cells is less than the target
 -- | product, or every cell in the group is non-empty and the the product is
 -- | exactly the target
-constraintViolated ps (CE (PE.MultsTo prod) cg) =
-  totalConstraintViolated product ps prod cg
+constraintUnviolated ps (PE.CE (PE.MultsTo prod) cg) =
+  totalconstraintUnviolated product ps prod cg
 -- | Valid if either the target cell is empty, or every non-empty value in the
 -- | group is greater than the value in the target
-constraintViolated ps (CE (PE.GreaterThan r c) cg) =
-  compareConstraintViolated (>) ps r c cg
+constraintUnviolated ps (PE.CE (PE.GreaterThan r c) cg) =
+  compareconstraintUnviolated (>) ps r c cg
 -- | Valid if either the target cell is empty, or every non-empty value in the
 -- | group is less than the value in the target
-constraintViolated ps (CE (PE.LessThan r c) cg) =
-  compareConstraintViolated (<) ps r c cg
+constraintUnviolated ps (PE.CE (PE.LessThan r c) cg) =
+  compareconstraintUnviolated (<) ps r c cg
 
-totalConstraintViolated :: ([Int] -> Int) -> PuzzleSolution -> Int
-  -> Set.Set (Int, Int) -> Bool
-totalConstraintViolated totalF ps val cg
+totalconstraintUnviolated :: ([Int] -> Int) -> PuzzleSolution -> Int
+  -> Set.Set Cell -> Bool
+totalconstraintUnviolated totalF ps val cg
   | total > val = False
   | total < val && length values == Set.size cg = False
   | otherwise = True
@@ -100,9 +104,9 @@ totalConstraintViolated totalF ps val cg
     values = valuesIn ps cg
     total = totalF values
 
-compareConstraintViolated :: (Int -> Int -> Bool)
-  -> PuzzleSolution -> Int -> Int -> Set.Set (Int, Int) -> Bool
-compareConstraintViolated compF ps r c cg = case valueAt ps (r, c) of
+compareconstraintUnviolated :: (Int -> Int -> Bool)
+  -> PuzzleSolution -> Int -> Int -> Set.Set Cell -> Bool
+compareconstraintUnviolated compF ps r c cg = case valueAt ps (r, c) of
   Nothing -> True
   Just val -> all (`compF` val) (valuesIn ps cg)
 
@@ -112,6 +116,7 @@ compareConstraintViolated compF ps r c cg = case valueAt ps (r, c) of
 data SolveError
   = EvaluationError PE.EvalError
   | NoSolutionFound
+  | BadState
   deriving (Show, Eq)
 
 -- | Represents all the values a cell could have based on the current state of
@@ -145,6 +150,10 @@ setGuessKnown val (Potential vals)
   | Set.member val vals = Known val
   | otherwise = NoSol
 
+-- | Validates a `Guesses` directly, given a puzzle
+validateG :: Guesses -> PE.PuzzleE -> Bool
+validateG gs pe = validate $ solutionFromGuesses gs pe
+
 -- | Contains guesses for every cell
 -- | If the exact value of the cell is known, the cell coordinate will be in
 -- | "known", along with its value
@@ -169,7 +178,7 @@ getGuessAt gs cell = case known gs !? cell of
 -- | given a value. Returns Nothing if the operation results in an insolvable
 -- | puzzle
 doGuessOp :: (Int -> Guess -> Guess) -> Cell -> Guesses -> Int -> Maybe Guesses
-doGuessOp op cell gs val = 
+doGuessOp op cell gs val =
   let
     current = getGuessAt gs cell
     guess = op val current
@@ -196,13 +205,14 @@ setGuessAt = doGuessOp setGuessKnown
       | otherwise = NoSol
 
 -- | Removes a potential value from a cell
--- | Returns Nothing if this rules out all possible values for the cell
+-- | Returns Nothing if this rules out all possible values for the cell. Note
+-- | that this operation can result in `potential`s containing a single cell,
+-- | and will not automatically move them to `known`
 removeGuessValueAt :: Cell -> Guesses -> Int -> Maybe Guesses
 removeGuessValueAt = doGuessOp removeGuessValue
   where
     removeGuessValue val (Potential vals) = case Set.toList newVals of
       [] -> NoSol
-      [x] -> Known x
       _ -> Potential newVals
       where
         newVals = Set.delete val vals
@@ -210,6 +220,16 @@ removeGuessValueAt = doGuessOp removeGuessValue
       | x == val = NoSol
       | otherwise = Known x
     removeGuessValue _ NoSol = NoSol
+
+-- | Same as the above function but takes in a Maybe Guesses, returning Nothing
+-- | if it's Nothing. Useful for foldr
+removeGuessValueAtM :: Cell -> Maybe Guesses -> Int -> Maybe Guesses
+removeGuessValueAtM cell gs val = do
+  gs' <- gs
+  removeGuessValueAt cell gs' val
+
+solutionFromGuesses :: Guesses -> PE.PuzzleE -> PuzzleSolution
+solutionFromGuesses gs pe = PuzzleSolution pe (known gs)
 
 -- | Get's the set of initial guesses for a puzzle, using its dimensions.
 -- | All cells could potentially be anything from 0 to 9
@@ -222,7 +242,7 @@ initialGuesses pe = GS Map.empty (Map.fromList [(key, allVals) | key <- cells])
     allVals = Set.fromList [0..9]
 
 -- | A type solely used in the below function
-type TakenInits = Either SolveError (PE.PuzzleE, Guesses, Set.Set Cell)
+type TakenInits = Maybe (PE.PuzzleE, Guesses, Set.Set Cell)
 
 -- | Apply the Value constraints (cellInits) to the puzzle. This produces a
 -- | triple containing the following values:
@@ -233,50 +253,78 @@ type TakenInits = Either SolveError (PE.PuzzleE, Guesses, Set.Set Cell)
 -- |    case an error is thrown
 -- | 3) A set of cells affected by Value constraints
 takeCellInits :: PE.PuzzleE -> TakenInits
-takeCellInits pe = foldr applyCons (Right (pe, gs, Set.empty)) cons
+takeCellInits pe = foldr applyCons (Just (pe, gs, Set.empty)) cons
   where
     gs = initialGuesses pe
     cons = PE.constraints pe
 
     applyCons :: PE.ConstraintE -> TakenInits -> TakenInits
-    applyCons c@(PE.CE (PE.Value val) cells) (Right (peAcc, gsAcc, cellsAcc)) =
+    applyCons c@(PE.CE (PE.Value val) cells) (Just (peAcc, gsAcc, cellsAcc)) =
       let newPe = peAcc { PE.constraints = Set.delete c (PE.constraints peAcc) }
-      in foldr (setCellKnown val) (Right (newPe, gsAcc, cellsAcc)) cells
+      in foldr (setCellKnown val) (Just (newPe, gsAcc, cellsAcc)) cells
     applyCons _ acc = acc
-    
+
     setCellKnown :: Int -> Cell -> TakenInits -> TakenInits
-    setCellKnown val cell (Right (peAcc, gsAcc, cellsAcc)) =
+    setCellKnown val cell (Just (peAcc, gsAcc, cellsAcc)) =
       let
         newCells = Set.insert cell cellsAcc
         newGs = setGuessAt cell gsAcc val
       in case newGs of
-        Just newGs' -> Right (peAcc, newGs', newCells)
-        Nothing -> Left NoSolutionFound
+        Just newGs' -> Just (peAcc, newGs', newCells)
+        Nothing -> Nothing
     setCellKnown _ _ err = err
 
 -- | Given that a cell is now known to have a given value, narrow down the
 -- | remaining guesses using heuristics with respect to the given constraint, or
 -- | throw an error if this results in an unsolvable puzzle
-applyHeuristic :: Cell -> Int -> PE.ConstraintE -> Guesses -> Either SolveError Guesses
-applyHeuristic cell val (PE.CE (PE.Unique (from, to)) _) gs = Right gs
-applyHeuristic cell val _ gs = Right gs
+applyHeuristic :: Cell -> Int -> PE.ConstraintE -> Guesses -> Maybe Guesses
+applyHeuristic cell val (PE.CE (PE.Unique (from, to)) _) gs = Just gs
+applyHeuristic cell val (PE.CE cType cells) gs =
+  foldr (step cell val cType) (Just gs) cells
+  where
+    step knownCell val cType cell gs = do
+      gs' <- gs
+      if knownCell == cell
+        then Just gs'
+        else guessForHeuristic knownCell val cType cell gs'
+    guessForHeuristic :: Cell -> Int -> PE.ConstraintEType -> Cell -> Guesses -> Maybe Guesses
+    guessForHeuristic _ val (PE.Unique (to, from)) cell gs =
+      removeGuessValueAt cell gs val
+    guessForHeuristic knownCell val (PE.GreaterThan r c) cell gs
+      | knownCell == (r, c) =
+        foldr (flip (removeGuessValueAtM cell)) (Just gs) [val + 1 .. 9]
+      | cell == (r, c) =
+        foldr (flip (removeGuessValueAtM cell)) (Just gs) [1 .. val - 1]
+      | otherwise = Just gs
+    guessForHeuristic knownCell val (PE.LessThan r c) cell gs
+      | cell == (r, c) =
+        foldr (flip (removeGuessValueAtM cell)) (Just gs) [val + 1 .. 9]
+      | knownCell == (r, c) =
+        foldr (flip (removeGuessValueAtM cell)) (Just gs) [1 .. val - 1]
+      | otherwise = Just gs
+    guessForHeuristic _ _ _ _ gs = Just gs
+
+-- >>> runTestTT test_solveE
+-- Counts {cases = 3, tried = 3, errors = 0, failures = 0}
 
 -- | Given that a cell is now known to have a given value, narrow down the
 -- | remaining guesses using the heuristics that apply to the constraints
 -- | affected by that cell. Throws an error if this results in an unsolvable
 -- | puzzle
-applyHeuristics :: Cell -> Int -> PE.CellConstraints -> Guesses -> Either SolveError Guesses
-applyHeuristics cell val ccs gs = foldr step (Right gs) cons
+applyHeuristics :: Cell -> Int -> PE.CellConstraints -> Guesses -> Maybe Guesses
+applyHeuristics cell val ccs gs = foldr step (Just gs) cons
   where
-    step :: PE.ConstraintE -> Either SolveError Guesses -> Either SolveError Guesses
-    step _ (Left ex) = Left ex
-    step con (Right acc) = applyHeuristic cell val con acc
+    step :: PE.ConstraintE -> Maybe Guesses -> Maybe Guesses
+    step _ Nothing = Nothing
+    step con (Just acc) = applyHeuristic cell val con acc
     cons = Map.findWithDefault Set.empty cell ccs
 
 solve :: PS.PuzzleSyntax -> Either SolveError PuzzleSolution
 solve puzzle = case PE.evaluatePuzzle puzzle of
   Left evalError -> Left (EvaluationError evalError)
-  Right pe -> solveE pe
+  Right pe -> case solveE pe of
+    Just sol -> Right sol
+    Nothing -> Left NoSolutionFound
 
 -- | Converts Guesses into a PuzzleSolution
 
@@ -299,32 +347,53 @@ solve puzzle = case PE.evaluatePuzzle puzzle of
  results in a NoSol. Either way, return to Step 4
 -}
 
-solveE :: PE.PuzzleE -> Either SolveError PuzzleSolution
+solveE :: PE.PuzzleE -> Maybe PuzzleSolution
 solveE pe = do
   -- Step 1
   (iPe, iGs, affectedCells) <- takeCellInits pe
 
   -- Step 2
-  let cellCons = PE.cellConstraints iPe
+  let cc = PE.cellConstraints iPe
 
   -- Step 3
-  gs <- foldr (applyHeuristicsForCell cellCons) (Right iGs) affectedCells
+  gs <- foldr (applyHeuristicsForCell cc) (Just iGs) affectedCells
 
-  -- Step 4
-  doLoop gs cellCons
+  -- Steps 4 - 7
+  solution <- (`solutionFromGuesses` iPe) <$> doLoop cc iPe gs
+
+  -- Ensure the original puzzle matches
+  return $ solution { puzzle = pe }
 
   where
-    getKnown (Known v) = v
-    getKnown _ = -1
-    applyHeuristicsForCell :: PE.CellConstraints -> Cell -> Either SolveError Guesses -> Either SolveError Guesses
+    applyHeuristicsForCell :: PE.CellConstraints -> Cell -> Maybe Guesses -> Maybe Guesses
     applyHeuristicsForCell cellCons cell acc = do
       guesses <- acc
-      let val = getKnown (getGuessAt guesses cell)
-      applyHeuristics cell val cellCons guesses
-    
-    doLoop = undefined 
+      case getGuessAt guesses cell of
+        Known val -> applyHeuristics cell val cellCons guesses
+        _ -> return guesses
 
-    
+    doLoop :: PE.CellConstraints -> PE.PuzzleE -> Guesses -> Maybe Guesses
+    doLoop cc pe gs = case Map.lookupMin (potential gs) of
+      -- Step 4
+      Nothing -> return gs
+      -- Step 5
+      Just cellVals -> tryAtCell cc pe gs cellVals
+
+    tryAtCell :: PE.CellConstraints -> PE.PuzzleE -> Guesses -> (Cell, Set.Set Int) -> Maybe Guesses
+    tryAtCell cc pe gs (cell, potentials) = foldr step Nothing potentials
+      where
+        step val acc = tryValue val <|> acc
+        tryValue val = do
+          let gs' = setGuessAt cell gs val
+          -- Step 6
+          newGuesses <- applyHeuristicsForCell cc cell gs'
+          -- Step 7
+          if validateG newGuesses pe
+            then doLoop cc pe newGuesses
+            else Nothing
+
+-- >>> validate <$> (solveE PE.eSudSmall)
+-- Just True
 
 -- | Tests
 
@@ -372,26 +441,21 @@ sKakSmall = PuzzleSolution PE.eKakSmall $ toSolutionMap 4 [
   0, 9, 2, 4,
   0, 2, 8, 9]
 
-right :: c -> (b -> c) -> Either a b -> c
-right def = either (const def)
 
 prop_solveSamePuzzle :: PE.PuzzleE -> QC.Property
-prop_solveSamePuzzle p = isRight ps QC.==> right True (\ps' -> puzzle ps' == p) ps
+prop_solveSamePuzzle pe = isJust pSol QC.==> (puzzle <$> pSol) == Just pe
   where
-    ps = solveE p
+    pSol = solveE pe
 
-prop_solveValid :: PS.PuzzleSyntax -> QC.Property
-prop_solveValid p = isRight ps QC.==> right True validate ps
+prop_solveValid :: PE.PuzzleE -> QC.Property
+prop_solveValid pe = isJust pSol QC.==> (validate <$> pSol) == Just True
   where
-    ps = solve p
+    pSol = solveE pe
 
-prop_solveComplete :: PS.PuzzleSyntax -> QC.Property
-prop_solveComplete p@(PS.Grid w h _) = isRight ps QC.==> right True complete ps
+prop_solveComplete :: PE.PuzzleE -> QC.Property
+prop_solveComplete pe = isJust pSol QC.==> (isComplete <$> pSol) == Just True
   where
-    ps = solve p
-    coords = List.sort [(r, c) | r <- [0..h-1], c <- [0..w-1]]
-    complete :: PuzzleSolution -> Bool
-    complete (PuzzleSolution _ s) = List.sort (Map.keys s) == coords
+    pSol = solveE pe
 
 prop_emptyValid :: PE.PuzzleE -> Bool
 prop_emptyValid p = validate $ PuzzleSolution p Map.empty
@@ -413,13 +477,24 @@ prop_addInvalid ps@(PuzzleSolution p@(PE.PE w h _) s) r c v =
       pair = (r `mod` h, c `mod` h)
       ps' = putCellValue ps pair v
 
-test_solve :: Test
-test_solve =
+test_solveE :: Test
+test_solveE =
   "Testing Solver"
+    ~: TestList
+      [solveE PE.eSudSmall ~?= Just sSudSmall,
+      solveE PE.eMagSquare ~?= Just sMagSquare,
+      solveE PE.eKakSmall ~?= Just sKakSmall]
+
+test_solveFull :: Test
+test_solveFull =
+  "Testing Solver (Full Pipeline)"
     ~: TestList
       [solve PS.pSudSmall ~?= Right sSudSmall,
       solve PS.pMagSquare ~?= Right sMagSquare,
       solve PS.pKakSmall ~?= Right sKakSmall]
+
+-- >>> runTestTT test_solveE
+-- Counts {cases = 3, tried = 3, errors = 0, failures = 0}
 
 checkProps :: IO ()
 checkProps = do

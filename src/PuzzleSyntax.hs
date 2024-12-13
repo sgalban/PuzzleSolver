@@ -68,6 +68,9 @@ data CellGroup
 
 -- QuickCheck instances
 
+genNat :: QC.Gen Int
+genNat = abs <$> QC.arbitrary
+
 instance Arbitrary Bop where
   arbitrary :: QC.Gen Bop
   arbitrary = QC.frequency [
@@ -84,7 +87,7 @@ genNumExp inRepeat = QC.resize 5 $ QC.sized genExp
     genExp 0 = QC.frequency [
       (if inRepeat then 1 else 0, return $ RepeatVar 0),
       (if inRepeat then 1 else 0, return $ RepeatVar 1),
-      (4, Number . abs <$> QC.arbitrary)]
+      (4, Number <$> genNat)]
     genExp n = QC.frequency [
       (20, genExp 0),
       (n, Op2 <$> genExp n' <*> QC.arbitrary <*> genExp n')]
@@ -100,7 +103,14 @@ instance Arbitrary NumExp where
   shrink _ = []
 
 genRange :: Bool -> QC.Gen Range
-genRange inRepeat = liftM2 (curry Range) (genNumExp inRepeat) (genNumExp inRepeat)
+genRange inRepeat = QC.frequency [
+  (1, liftM2 (curry Range) (genNumExp inRepeat) (genNumExp inRepeat)),
+  (5, genValidRange)]
+  where
+    genValidRange = do
+      start <- genNat
+      size <- genNat
+      return $ Range (Number start, Number (start + size))
 
 instance Arbitrary Range where
   arbitrary :: QC.Gen Range

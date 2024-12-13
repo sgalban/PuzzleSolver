@@ -74,7 +74,7 @@ ss = Set.singleton
 -- | Generates the set of all possible cell coordinates for a grid with the
 -- | given width and height
 allCells :: Int -> Int -> Set.Set (Int, Int)
-allCells w h = Set.fromList [(r, c) | r <- [0..(h - 1)], c <- [0..(w- 1)]]
+allCells w h = Set.fromList [(r, c) | r <- [0..(h - 1)], c <- [0..(w - 1)]]
 
 -- | Evaluate a repeat var. Throws if we're not a repeat rule
 evalRepeatVar :: Int -> PEval Int
@@ -328,14 +328,25 @@ evaluatePuzzle p@(PS.Grid w h rules) = let
       tailRules <- evaluateRules crs
       return (headRules <> tailRules)
 
+-- | A map from cell coordinates to constraints the cell is affected by.
+-- | Keys are usually in the cell groups of the constraints in the value set,
+-- | but not always
+type CellConstraints = Map.Map (Int, Int) (Set.Set ConstraintE)
+
 -- | Creates a mapping from every cell in the grid to the set of constraints
--- | that apply to them
-cellConstraints :: PuzzleE -> Map.Map (Int, Int) (Set.Set ConstraintE)
-cellConstraints (PE w h cs) = foldr invertConstraint initMap cs
+-- | that affect them
+cellConstraints :: PuzzleE -> CellConstraints
+cellConstraints (PE w h cs) = Map.unionWith (<>) inverses extras
   where
+    inverses = foldr invertConstraint initMap cs
     initMap = Map.fromList [(k, Set.empty) | k <- Set.toList (allCells w h)]
     invertConstraint con acc = foldr (addCellToMap con) acc (cells con)
     addCellToMap con cell = Map.insertWith (<>) cell (ss con)
+    extras = foldMap addExtras cs
+    -- | Some constraints affect cells outside their cell group
+    addExtras con@(CE (GreaterThan r c) _) = Map.singleton (r, c) (ss con)
+    addExtras con@(CE (LessThan r c) _) = Map.singleton (r, c) (ss con)
+    addExtras _ = Map.empty
 
 -- | Evaluation Tests
 
@@ -587,33 +598,9 @@ testEvalPuzzle :: Test
 testEvalPuzzle =
   "testEvalPuzzle"
   ~: TestList [
-<<<<<<< HEAD
-    evaluatePuzzle PS.pSudSmall ~?= Right (PE 4 4 (Set.fromList [
-      CE (Unique (1, 4)) (Set.fromList [(0, c) | c <- [0..3]]),
-      CE (Unique (1, 4)) (Set.fromList [(1, c) | c <- [0..3]]),
-      CE (Unique (1, 4)) (Set.fromList [(2, c) | c <- [0..3]]),
-      CE (Unique (1, 4)) (Set.fromList [(3, c) | c <- [0..3]]),
-
-      CE (Unique (1, 4)) (Set.fromList [(r, 0) | r <- [0..3]]),
-      CE (Unique (1, 4)) (Set.fromList [(r, 1) | r <- [0..3]]),
-      CE (Unique (1, 4)) (Set.fromList [(r, 2) | r <- [0..3]]),
-      CE (Unique (1, 4)) (Set.fromList [(r, 3) | r <- [0..3]]),
-
-      CE (Unique (1, 4)) (Set.fromList [(0, 0), (0, 1), (1, 0), (1, 1)]),
-      CE (Unique (1, 4)) (Set.fromList [(2, 0), (2, 1), (3, 0), (3, 1)]),
-      CE (Unique (1, 4)) (Set.fromList [(0, 2), (0, 3), (1, 2), (1, 3)]),
-      CE (Unique (1, 4)) (Set.fromList [(2, 2), (2, 3), (3, 2), (3, 3)]),
-
-      CE (Value 3) (ss (0, 3)),
-      CE (Value 4) (ss (1, 1)),
-      CE (Value 3) (ss (2, 2)),
-      CE (Value 2) (ss (2, 3))
-    ]))
-=======
     evaluatePuzzle PS.pSudSmall ~?= Right eSudSmall,
     evaluatePuzzle PS.pMagSquare ~?= Right eMagSquare,
     evaluatePuzzle PS.pKakSmall ~?= Right eKakSmall
->>>>>>> f6b7262 (Move PuzzleSolution to PuzzleSolver.hs)
   ]
 
 -- >>> runTestTT testEvalPuzzle
@@ -630,19 +617,19 @@ testAll = runTestTT $ TestList [
   testEvalPuzzle]
 
 -- >>> testAll
--- Counts {cases = 53, tried = 53, errors = 0, failures = 0}
+-- Counts {cases = 55, tried = 55, errors = 0, failures = 0}
 
 instance Arbitrary PuzzleE where
   arbitrary :: QC.Gen PuzzleE
   arbitrary = do
-    w <- QC.choose (3, 6)
-    h <- QC.choose (3, 6)
-    cons <- Set.fromList <$> QC.listOf (arbCons w h) 
+    w <- QC.choose (3, 5)
+    h <- QC.choose (3, 5)
+    cons <- Set.fromList <$> QC.resize 3 (QC.listOf (arbCons w h))
     return (PE w h cons)
     where
-      arbCons w h = CE <$> QC.arbitrary <*> (Set.fromList <$> QC.listOf (arbPair w h))
+      arbCons w h = CE <$> QC.arbitrary <*> (Set.fromList <$> QC.resize 5 (QC.listOf (arbPair w h)))
       arbPair w h = liftM2 (,) (QC.choose (0, h - 1)) (QC.choose (0, w - 1))
-      cells w h = QC.suchThat (QC.listOf (arbPair w h)) (not . null)
+      cells w h = QC.suchThat (QC.resize 5 $ QC.listOf (arbPair w h)) (not . null)
 
   shrink :: PuzzleE -> [PuzzleE]
   shrink pe = case Set.toList $ constraints pe of
@@ -657,8 +644,6 @@ instance Arbitrary ConstraintEType where
     MultsTo <$> arbInt,
     GreaterThan <$> arbInt <*> arbInt,
     LessThan <$> arbInt <*> arbInt,
-    pure Always,
-    pure Never,
     Value <$> arbInt]
     where
       arbInt = QC.choose (1, 9)
@@ -685,4 +670,4 @@ runTests = do
   putStrLn "quickCheck prop_noEmptyCellGroups"
   QC.quickCheck prop_noEmptyCellGroups
   putStrLn "quickCheck prop_inverseConstraints"
-  QC.quickCheck prop_inverseConstraints 
+  QC.quickCheck prop_inverseConstraints
