@@ -1,5 +1,5 @@
 grid(3, 3) {
-  constraint unqiue(1 to 9) in all
+  constraint unique(1 to 9) in all
 
   repeat(0, 2) {
     constraint addsTo(15) in row $0

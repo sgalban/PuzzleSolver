@@ -25,7 +25,8 @@ library
                        Parser,
                        PuzzleParser,
                        PuzzleCLI,
-                       PuzzleEvaluator
+                       PuzzleEvaluator,
+                       PuzzlePrinter
 
  hs-source-dirs: src
 
@@ -38,7 +39,8 @@ executable puzzleSolver
                        Parser,
                        PuzzleParser,
                        PuzzleCLI,
-                       PuzzleEvaluator
+                       PuzzleEvaluator,
+                       PuzzlePrinter
   hs-source-dirs: src
   build-depends: puzzleSolver
 
