@@ -52,6 +52,16 @@ data EvalError
   | OutOfBounds
   deriving (Show, Eq)
 
+getErrorString :: EvalError -> String
+getErrorString err = "Evaluation Error: " ++ errString err
+  where
+    errString (InvalidVar v) = "Illegal repeat variable (" ++ show v ++ ")"
+    errString DivByZero = "Division by zero"
+    errString ZeroExponent = "Zero exponent"
+    errString NegativeNumber = "Negative number"
+    errString InvalidRange = "Invaid range"
+    errString OutOfBounds = "Cell group out of bounds"
+
 -- | The puzzle context at a given point of evaluation.
 -- | This includes all repeat variables (if we're inside of a repeat), and also
 -- | all constrained cells, which we must keep track of for in order to properly
@@ -617,7 +627,7 @@ eFutoshiki = PE 5 5 $ Set.fromList [
   CE (LessThan 3 4) (ss (3, 3)),
   CE (LessThan 4 1) (ss (4, 0)),
   CE (LessThan 4 2) (ss (4, 1)),
-  
+
   CE (Value 4) (ss (1, 0)),
   CE (Value 2) (ss (1, 4)),
   CE (Value 4) (ss (2, 2)),

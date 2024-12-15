@@ -1,4 +1,4 @@
-module PuzzleSolver(solve, validate, checkProps, PuzzleSolution(..)) where
+module PuzzleSolver where
 import qualified PuzzleSyntax as PS
 import qualified Test.QuickCheck as QC
 import Data.Maybe (isJust, isNothing, mapMaybe, fromMaybe)
@@ -24,7 +24,7 @@ data PuzzleSolution = PuzzleSolution {
 -- | Fails if the coordinate is not in the bounds of the puzzle
 putCellValue :: PuzzleSolution -> Cell -> Int -> Maybe PuzzleSolution
 putCellValue (PuzzleSolution p s) coord@(row, col) val =
-  if row > 0 && col > 0 && row < PE.height p && col < PE.width p
+  if row >= 0 && col >= 0 && row < PE.height p && col < PE.width p
     then Just $ PuzzleSolution p (Map.insert coord val s)
     else Nothing
 

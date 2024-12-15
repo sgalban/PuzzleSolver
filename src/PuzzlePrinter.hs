@@ -21,7 +21,7 @@ printPuzzleE (PE w h constraints) =
     rowToAscii r = "|" ++ concatMap (\c -> cellToAscii (r, c)) [0..(w-1)]
 
     -- Convert a single cell to ASCII
-    cellToAscii coord = " " ++ fromMaybe " " (fmap show (cellValues Map.!? coord)) ++ " |"
+    cellToAscii coord = " " ++ maybe " " show (cellValues Map.!? coord) ++ " |"
 
 -- Function to print PuzzleSolution as an ASCII grid
 printPuzzleSolution :: PuzzleSolution -> String
@@ -32,7 +32,8 @@ printPuzzleSolution (PuzzleSolution (PE w h _) cellValues) =
         rowToAscii r = "|" ++ concatMap (\c -> cellToAscii (r, c)) [0..(w-1)]
 
         -- Convert a single cell to ASCII
-        cellToAscii coord = " " ++ fromMaybe " " (fmap (show . processNumber) (cellValues Map.!? coord)) ++ " |"
+        cellVal cell = maybe " " (show . processNumber) (cellValues Map.!? cell)
+        cellToAscii cell = " " ++ cellVal cell ++ " |"
 
 processNumber :: Int -> Int
 processNumber n = n `mod` 10
@@ -44,11 +45,13 @@ intercalateLines w rows =
 
 -- Example puzzles for testing
 examplePuzzleE :: PuzzleE
-examplePuzzleE = PE 3 3 (Set.fromList [CE (Value 1) (Set.fromList [(0, 0), (1, 1)]), CE (Value 12) (Set.fromList [(2, 2)])])
+examplePuzzleE = PE 3 3 (Set.fromList [
+  CE (Value 1) (Set.fromList [(0, 0), (1, 1)]),
+  CE (Value 12) (Set.fromList [(2, 2)])])
 
 examplePuzzleSolution :: PuzzleSolution
 examplePuzzleSolution = PuzzleSolution
-  (PE 3 3 Set.empty) 
+  (PE 3 3 Set.empty)
   (Map.fromList [((0, 0), 15), ((1, 1), 25), ((2, 2), 35)])
 
 

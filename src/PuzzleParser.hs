@@ -344,8 +344,9 @@ testParsePuzzle = TestList
 -- >>> runTestTT testParsePuzzle
 -- Counts {cases = 4, tried = 4, errors = 0, failures = 0}
 
-
-
+-- | Parse a puzzle directly from a file
+parsePuzzleFromFile :: String -> IO (Either ParseError PuzzleSyntax)
+parsePuzzleFromFile = Parser.parseFromFile parsePuzzle
 
 -- -- Main for testing
 -- main :: IO ()
@@ -413,7 +414,6 @@ testConstraintRule = "repeat(0, 2) { constraint addsTo(15) in row $0 }"
 -- >>> parse parseConstraintRule testConstraintRule
 -- Right (Repeat (Range (Number 0,Number 2)) (CC (ConstrainedCells {constraint = PC (AddsTo (Number 15)), cellGroup = Row (RepeatVar 0) Nothing})))
 
-
 -- >>> parse parseConstraintRule "constraints [unique(1 to 9)] in all"
 -- Right (CC (ConstrainedCells {constraint = ConstraintList [Unique (Range (Number 1,Number 9))], cellGroup = All}))
 
@@ -453,9 +453,6 @@ prettyCellGroup All =
     text "all"
 prettyCellGroup Unconstrained =
     text "unconstrained"
-
-
-
 
 -- PrettyPrint for PrimitiveConstraint
 prettyPrimitiveConstraint :: PrimitiveConstraint -> Doc
@@ -503,7 +500,6 @@ prettyPuzzle (Grid w h rules) =
 -- Helper Function
 prettyPrint :: PuzzleSyntax -> String
 prettyPrint = render . prettyPuzzle
-
 
 -- Test Inputs
 
@@ -585,8 +581,7 @@ testAll = runTestTT $ TestList [
 
 testParseSample :: String -> PuzzleSyntax -> IO Counts
 testParseSample filename expected = do
-    code <- readFile filename
-    let parsed = parse parsePuzzle code
+    parsed <- parsePuzzleFromFile filename
     putStrLn ("\nTesting " ++ filename)
     runTestTT (parsed ~?= Right expected)
 
@@ -601,5 +596,6 @@ main' = do
   _ <- testParseSample "samples/magicsquare.pz" pMagSquare
   _ <- testParseSample "samples/futoshiki.pz" pFutoshiki
   _ <- testParseSample "samples/kenken.pz" pKenKen
+  putStrLn ("\nTesting Roundtrip")
   quickCheck prop_roundtrip
   return ()
