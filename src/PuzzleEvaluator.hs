@@ -523,7 +523,7 @@ eEmpty :: PuzzleE
 eEmpty  = PE 5 5 Set.empty
 
 eSudSmall :: PuzzleE
-eSudSmall = PE 4 4 (Set.fromList [
+eSudSmall = PE 4 4 $ Set.fromList [
   CE (Unique (1, 4)) (Set.fromList [(0, c) | c <- [0..3]]),
   CE (Unique (1, 4)) (Set.fromList [(1, c) | c <- [0..3]]),
   CE (Unique (1, 4)) (Set.fromList [(2, c) | c <- [0..3]]),
@@ -542,10 +542,10 @@ eSudSmall = PE 4 4 (Set.fromList [
   CE (Value 3) (ss (0, 3)),
   CE (Value 4) (ss (1, 1)),
   CE (Value 3) (ss (2, 2)),
-  CE (Value 2) (ss (2, 3))])
+  CE (Value 2) (ss (2, 3))]
 
 eMagSquare :: PuzzleE
-eMagSquare = PE 3 3 (Set.fromList [
+eMagSquare = PE 3 3 $ Set.fromList [
   CE (Unique (1, 9)) (Set.fromList [(r, c) | r <- [0..2], c <- [0..2]]),
 
   CE (AddsTo 15) (Set.fromList [(0, c) | c <- [0..2]]),
@@ -562,10 +562,10 @@ eMagSquare = PE 3 3 (Set.fromList [
   CE (Value 9) (ss (0, 1)),
   CE (Value 7) (ss (1, 0)),
   CE (Value 3) (ss (1, 2)),
-  CE (Value 8) (ss (2, 2))])
+  CE (Value 8) (ss (2, 2))]
 
 eKakSmall :: PuzzleE
-eKakSmall = PE 4 4 (Set.fromList [
+eKakSmall = PE 4 4 $ Set.fromList [
   CE (Unique (1, 9)) (Set.fromList [(0, c) | c <- [0..2]]),
   CE (AddsTo 15) (Set.fromList [(0, c) | c <- [0..2]]),
 
@@ -595,7 +595,51 @@ eKakSmall = PE 4 4 (Set.fromList [
   CE (Value 2) (ss (2, 2)),
   CE (Value 2) (ss (3, 1)),
 
-  CE (Value 0) (Set.fromList [(0, 3), (1, 3), (2, 0), (3, 0)])])
+  CE (Value 0) (Set.fromList [(0, 3), (1, 3), (2, 0), (3, 0)])]
+
+eFutoshiki :: PuzzleE
+eFutoshiki = PE 5 5 $ Set.fromList [
+  CE (Unique (1, 5)) (Set.fromList [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]),
+  CE (Unique (1, 5)) (Set.fromList [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4)]),
+  CE (Unique (1, 5)) (Set.fromList [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4)]),
+  CE (Unique (1, 5)) (Set.fromList [(3, 0), (3, 1), (3, 2), (3, 3), (3, 4)]),
+  CE (Unique (1, 5)) (Set.fromList [(4, 0), (4, 1), (4, 2), (4, 3), (4, 4)]),
+
+  CE (Unique (1, 5)) (Set.fromList [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0)]),
+  CE (Unique (1, 5)) (Set.fromList [(0, 1), (1, 1), (2, 1), (3, 1), (4, 1)]),
+  CE (Unique (1, 5)) (Set.fromList [(0, 2), (1, 2), (2, 2), (3, 2), (4, 2)]),
+  CE (Unique (1, 5)) (Set.fromList [(0, 3), (1, 3), (2, 3), (3, 3), (4, 3)]),
+  CE (Unique (1, 5)) (Set.fromList [(0, 4), (1, 4), (2, 4), (3, 4), (4, 4)]),
+
+  CE (GreaterThan 0 1) (ss (0, 0)),
+  CE (GreaterThan 0 3) (ss (0, 2)),
+  CE (GreaterThan 0 4) (ss (0, 3)),
+  CE (LessThan 3 4) (ss (3, 3)),
+  CE (LessThan 4 1) (ss (4, 0)),
+  CE (LessThan 4 2) (ss (4, 1)),
+  
+  CE (Value 4) (ss (1, 0)),
+  CE (Value 2) (ss (1, 4)),
+  CE (Value 4) (ss (2, 2)),
+  CE (Value 4) (ss (3, 4))]
+
+eKenKen :: PuzzleE
+eKenKen = PE 4 4 $ Set.fromList [
+  CE (Unique (1, 4)) (Set.fromList [(0, c) | c <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(1, c) | c <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(2, c) | c <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(3, c) | c <- [0..3]]),
+
+  CE (Unique (1, 4)) (Set.fromList [(r, 0) | r <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(r, 1) | r <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(r, 2) | r <- [0..3]]),
+  CE (Unique (1, 4)) (Set.fromList [(r, 3) | r <- [0..3]]),
+
+  CE (AddsTo 5) (Set.fromList [(0, 0), (0, 1)]),
+  CE (MultsTo 96) (Set.fromList [(0, 2), (0, 3), (1, 2), (1, 3), (2, 2)]),
+  CE (MultsTo 12) (Set.fromList [(1, 0), (1, 1), (2, 0)]),
+  CE (AddsTo 10) (Set.fromList [(2, 1), (3, 1), (3, 2), (3, 3), (2, 3)])]
+
 
 testEvalPuzzle :: Test
 testEvalPuzzle =
@@ -604,11 +648,13 @@ testEvalPuzzle =
     evaluatePuzzle PS.pEmpty ~?= Right eEmpty,
     evaluatePuzzle PS.pSudSmall ~?= Right eSudSmall,
     evaluatePuzzle PS.pMagSquare ~?= Right eMagSquare,
-    evaluatePuzzle PS.pKakSmall ~?= Right eKakSmall
+    evaluatePuzzle PS.pKakSmall ~?= Right eKakSmall,
+    evaluatePuzzle PS.pFutoshiki ~?= Right eFutoshiki,
+    evaluatePuzzle PS.pKenKen ~?= Right eKenKen
   ]
 
 -- >>> runTestTT testEvalPuzzle
--- Counts {cases = 4, tried = 4, errors = 0, failures = 0}
+-- Counts {cases = 6, tried = 6, errors = 0, failures = 0}
 
 testAll :: IO Counts
 testAll = runTestTT $ TestList [

@@ -290,22 +290,19 @@ applyHeuristic cell val (PE.CE cType cells) gs =
     guessForHeuristic :: Cell -> Int -> PE.ConstraintEType -> Cell -> Guesses -> Maybe Guesses
     guessForHeuristic _ val (PE.Unique (to, from)) cell gs =
       removeGuessValueAt cell gs val
-    guessForHeuristic knownCell val (PE.GreaterThan r c) cell gs
+    guessForHeuristic knownCell val (PE.LessThan r c) cell gs
       | knownCell == (r, c) =
         foldr (flip (removeGuessValueAtM cell)) (Just gs) [val + 1 .. 9]
       | cell == (r, c) =
         foldr (flip (removeGuessValueAtM cell)) (Just gs) [1 .. val - 1]
       | otherwise = Just gs
-    guessForHeuristic knownCell val (PE.LessThan r c) cell gs
+    guessForHeuristic knownCell val (PE.GreaterThan r c) cell gs
       | cell == (r, c) =
         foldr (flip (removeGuessValueAtM cell)) (Just gs) [val + 1 .. 9]
       | knownCell == (r, c) =
         foldr (flip (removeGuessValueAtM cell)) (Just gs) [1 .. val - 1]
       | otherwise = Just gs
     guessForHeuristic _ _ _ _ gs = Just gs
-
--- >>> runTestTT test_solveE
--- Counts {cases = 3, tried = 3, errors = 0, failures = 0}
 
 -- | Given that a cell is now known to have a given value, narrow down the
 -- | remaining guesses using the heuristics that apply to the constraints
@@ -392,7 +389,7 @@ solveE pe = do
             then doLoop cc pe newGuesses
             else Nothing
 
--- >>> validate <$> (solveE PE.eSudSmall)
+-- >>> validate <$> solveE PE.eFutoshiki
 -- Just True
 
 -- | Tests
@@ -441,6 +438,20 @@ sKakSmall = PuzzleSolution PE.eKakSmall $ toSolutionMap 4 [
   0, 9, 2, 4,
   0, 2, 8, 9]
 
+sFutoshiki :: PuzzleSolution
+sFutoshiki = PuzzleSolution PE.eFutoshiki $ toSolutionMap 5 [
+  5, 4, 3, 2, 1,
+  4, 3, 1, 5, 2,
+  2, 1, 4, 3, 5,
+  3, 5, 2, 1, 4,
+  1, 2, 5, 4, 3]
+
+sKenKen :: PuzzleSolution
+sKenKen = PuzzleSolution PE.eKenKen $ toSolutionMap 4 [
+  1, 4, 2, 3,
+  3, 2, 1, 4,
+  2, 3, 4, 1,
+  4, 1, 3, 2]
 
 prop_solveSamePuzzle :: PE.PuzzleE -> QC.Property
 prop_solveSamePuzzle pe = isJust pSol QC.==> (puzzle <$> pSol) == Just pe
@@ -483,18 +494,19 @@ test_solveE =
     ~: TestList
       [solveE PE.eSudSmall ~?= Just sSudSmall,
       solveE PE.eMagSquare ~?= Just sMagSquare,
-      solveE PE.eKakSmall ~?= Just sKakSmall]
+      solveE PE.eKakSmall ~?= Just sKakSmall,
+      solveE PE.eFutoshiki ~?= Just sFutoshiki,
+      solveE PE.eKenKen ~?= Just sKenKen]
 
 test_solveFull :: Test
 test_solveFull =
-  "Testing Solver (Full Pipeline)"
+  "Testing Solver (Full Trip)"
     ~: TestList
       [solve PS.pSudSmall ~?= Right sSudSmall,
       solve PS.pMagSquare ~?= Right sMagSquare,
-      solve PS.pKakSmall ~?= Right sKakSmall]
-
--- >>> runTestTT test_solveE
--- Counts {cases = 3, tried = 3, errors = 0, failures = 0}
+      solve PS.pKakSmall ~?= Right sKakSmall,
+      solve PS.pFutoshiki ~?= Right sFutoshiki,
+      solve PS.pKenKen ~?= Right sKenKen]
 
 checkProps :: IO ()
 checkProps = do

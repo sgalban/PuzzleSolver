@@ -15,4 +15,9 @@ grid(5, 5) {
 
   constraint lessThan(4, 1) in cell(4, 0)
   constraint lessThan(4, 2) in cell(4, 1)
+
+  init cell(1, 0) with 4
+  init cell(1, 4) with 2
+  init cell(2, 2) with 4
+  init cell(3, 4) with 4
 }

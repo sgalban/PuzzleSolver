@@ -7,7 +7,7 @@ grid(4, 4) {
     constraint unique(1 to 4) in col $0
   }
 
-  constraint addsTo(4) in cells [cell(0, 0), cell(0, 1)]
+  constraint addsTo(5) in cells [cell(0, 0), cell(0, 1)]
   constraint multTo(96) in cells [
     cell(0, 2),
     cell(0, 3),

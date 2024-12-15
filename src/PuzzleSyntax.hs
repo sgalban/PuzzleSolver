@@ -271,7 +271,12 @@ pFutoshiki = Grid 5 5 [
 
   CC $ ConstrainedCells (PC $ LessThan (Number 3) (Number 4)) (cell 3 3),
   CC $ ConstrainedCells (PC $ LessThan (Number 4) (Number 1)) (cell 4 0),
-  CC $ ConstrainedCells (PC $ LessThan (Number 4) (Number 2)) (cell 4 1)]
+  CC $ ConstrainedCells (PC $ LessThan (Number 4) (Number 2)) (cell 4 1),
+  
+  CellInit (cell 1 0) (Number 4),
+  CellInit (cell 1 4) (Number 2),
+  CellInit (cell 2 2) (Number 4),
+  CellInit (cell 3 4) (Number 4)]
 
 -- | kenken.pz
 pKenKen :: PuzzleSyntax
@@ -279,7 +284,7 @@ pKenKen = Grid 4 4 [
   Repeat (range 0 3) (CC $ ConstrainedCells (PC $ Unique $ range 1 4) (Row (RepeatVar 0) Nothing)),
   Repeat (range 0 3) (CC $ ConstrainedCells (PC $ Unique $ range 1 4) (Col (RepeatVar 0) Nothing)),
 
-  CC $ ConstrainedCells (PC $ AddsTo (Number 4)) (CellList [cell 0 0, cell 0 1]),
+  CC $ ConstrainedCells (PC $ AddsTo (Number 5)) (CellList [cell 0 0, cell 0 1]),
   CC $ ConstrainedCells (PC $ MultsTo (Number 96)) (CellList [cell 0 2, cell 0 3, cell 1 2, cell 1 3, cell 2 2]),
   CC $ ConstrainedCells (PC $ MultsTo (Number 12)) (CellList [cell 1 0, cell 1 1, cell 2 0]),
   CC $ ConstrainedCells (PC $ AddsTo (Number 10)) (CellList [cell 2 1, cell 3 1, cell 3 2, cell 3 3, cell 2 3])]
