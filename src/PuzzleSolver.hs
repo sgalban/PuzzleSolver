@@ -1,4 +1,4 @@
-module PuzzleSolver(solve, validate, checkProps, PuzzleSolution) where
+module PuzzleSolver(solve, validate, checkProps, PuzzleSolution(..)) where
 import qualified PuzzleSyntax as PS
 import qualified Test.QuickCheck as QC
 import Data.Maybe (isJust, isNothing, mapMaybe, fromMaybe)

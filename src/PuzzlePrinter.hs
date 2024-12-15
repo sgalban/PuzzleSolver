@@ -1,6 +1,6 @@
 module PuzzlePrinter (printPuzzleE, printPuzzleSolution, main) where
-
 import PuzzleSyntax
+import PuzzleSolver (PuzzleSolution(PuzzleSolution))
 import PuzzleEvaluator (PuzzleE (PE), ConstraintE (CE), ConstraintEType (Value))
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -25,14 +25,14 @@ printPuzzleE (PE w h constraints) =
 
 -- Function to print PuzzleSolution as an ASCII grid
 printPuzzleSolution :: PuzzleSolution -> String
-printPuzzleSolution (PuzzleSolution (Grid w h _) cellValues) =
-  unlines $ intercalateLines w [rowToAscii r | r <- [0..(h-1)]]
-  where
-    -- Convert a single row to ASCII
-    rowToAscii r = "|" ++ concatMap (\c -> cellToAscii (r, c)) [0..(w-1)]
+printPuzzleSolution (PuzzleSolution (PE w h _) cellValues) =
+    unlines $ intercalateLines w [rowToAscii r | r <- [0..(h-1)]]
+    where
+        -- Convert a single row to ASCII
+        rowToAscii r = "|" ++ concatMap (\c -> cellToAscii (r, c)) [0..(w-1)]
 
-    -- Convert a single cell to ASCII
-    cellToAscii coord = " " ++ fromMaybe " " (fmap (show . processNumber) (cellValues Map.!? coord)) ++ " |"
+        -- Convert a single cell to ASCII
+        cellToAscii coord = " " ++ fromMaybe " " (fmap (show . processNumber) (cellValues Map.!? coord)) ++ " |"
 
 processNumber :: Int -> Int
 processNumber n = n `mod` 10
@@ -47,7 +47,10 @@ examplePuzzleE :: PuzzleE
 examplePuzzleE = PE 3 3 (Set.fromList [CE (Value 1) (Set.fromList [(0, 0), (1, 1)]), CE (Value 12) (Set.fromList [(2, 2)])])
 
 examplePuzzleSolution :: PuzzleSolution
-examplePuzzleSolution = PuzzleSolution (Grid 3 3 []) (Map.fromList [((0, 0), 15), ((1, 1), 25), ((2, 2), 35)])
+examplePuzzleSolution = PuzzleSolution
+  (PE 3 3 Set.empty) 
+  (Map.fromList [((0, 0), 15), ((1, 1), 25), ((2, 2), 35)])
+
 
 exampleLargePuzzleE :: PuzzleE
 exampleLargePuzzleE = PE 5 5 (Set.fromList
@@ -57,14 +60,17 @@ exampleLargePuzzleE = PE 5 5 (Set.fromList
   ])
 
 exampleLargePuzzleSolution :: PuzzleSolution
-exampleLargePuzzleSolution = PuzzleSolution (Grid 5 5 []) (Map.fromList
-  [ ((0, 0), 12),
+exampleLargePuzzleSolution = PuzzleSolution
+  (PE 5 5 Set.empty)  -- Replace Grid with PE
+  (Map.fromList [
+    ((0, 0), 12),
     ((0, 1), 15),
     ((1, 1), 18),
     ((2, 2), 25),
     ((3, 3), 35),
     ((4, 4), 45)
   ])
+
 
 main :: IO ()
 main = do
