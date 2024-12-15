@@ -595,7 +595,11 @@ main' :: IO ()
 main' = do
   testPrettyPrint
   _ <- testAll
+  _ <- testParseSample "samples/empty.pz" pEmpty
+  _ <- testParseSample "samples/sudoku-small.pz" pSudSmall
   _ <- testParseSample "samples/kakuro-small.pz" pKakSmall
   _ <- testParseSample "samples/magicsquare.pz" pMagSquare
+  _ <- testParseSample "samples/futoshiki.pz" pFutoshiki
+  _ <- testParseSample "samples/kenken.pz" pKenKen
   quickCheck prop_roundtrip
   return ()

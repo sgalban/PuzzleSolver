@@ -519,6 +519,9 @@ testEvalRepeat =
 -- >>> runTestTT testEvalRepeat
 -- Counts {cases = 4, tried = 4, errors = 0, failures = 0}
 
+eEmpty :: PuzzleE
+eEmpty  = PE 5 5 Set.empty
+
 eSudSmall :: PuzzleE
 eSudSmall = PE 4 4 (Set.fromList [
   CE (Unique (1, 4)) (Set.fromList [(0, c) | c <- [0..3]]),
@@ -598,13 +601,14 @@ testEvalPuzzle :: Test
 testEvalPuzzle =
   "testEvalPuzzle"
   ~: TestList [
+    evaluatePuzzle PS.pEmpty ~?= Right eEmpty,
     evaluatePuzzle PS.pSudSmall ~?= Right eSudSmall,
     evaluatePuzzle PS.pMagSquare ~?= Right eMagSquare,
     evaluatePuzzle PS.pKakSmall ~?= Right eKakSmall
   ]
 
 -- >>> runTestTT testEvalPuzzle
--- Counts {cases = 3, tried = 3, errors = 0, failures = 0}
+-- Counts {cases = 4, tried = 4, errors = 0, failures = 0}
 
 testAll :: IO Counts
 testAll = runTestTT $ TestList [
