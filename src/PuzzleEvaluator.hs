@@ -679,35 +679,59 @@ testAll = runTestTT $ TestList [
 -- >>> testAll
 -- Counts {cases = 55, tried = 55, errors = 0, failures = 0}
 
+-- | Generates the set of constraints that define a Latin square
+latinSquareCons :: Int -> Set.Set ConstraintE
+latinSquareCons size = Set.fromList $
+  [CE (Unique (1, size)) (Set.fromList [(r, c) | c <- [0..size - 1]]) | r <- [0..size - 1]] ++
+  [CE (Unique (1, size)) (Set.fromList [(r, c) | r <- [0..size - 1]]) | c <- [0..size - 1]]
+
+-- | Generates an arbitrary coordinate within the bounds of a grid
+genCoord :: Int -> Int -> QC.Gen (Int, Int)
+genCoord w h = liftM2 (,) (QC.choose (0, w - 1)) (QC.choose (0, h - 1))
+
+-- | Generator for 4x4 sudoku puzzles. No guarantee of solvability, or
+-- | uniqueness of a solution
+genSudoku :: QC.Gen PuzzleE
+genSudoku = do
+  let regCons = Set.fromList [
+        CE (Unique (1, 4)) (Set.fromList [(0, 0), (0, 1), (1, 0), (1, 1)]),
+        CE (Unique (1, 4)) (Set.fromList [(2, 0), (2, 1), (3, 0), (3, 1)]),
+        CE (Unique (1, 4)) (Set.fromList [(0, 2), (0, 3), (1, 2), (1, 3)]),
+        CE (Unique (1, 4)) (Set.fromList [(2, 2), (2, 3), (3, 2), (3, 3)])]
+  initCells <- Set.fromList <$> QC.resize 8 (QC.listOf (genCoord 4 4))
+  inits <- Set.fromList <$>
+    mapM (\cell -> (CE . Value <$> QC.choose (1, 4))
+    <*> pure (ss cell)) (Set.toList initCells)
+  return $ PE 4 4 (latinSquareCons 4 <> regCons <> inits)
+
+-- | Generator for 4x4 futoshiki puzzles. No guarantee of solvability, or
+-- | uniqueness of a solution
+genFutoshiki :: QC.Gen PuzzleE
+genFutoshiki = do
+  size <- QC.choose (3 :: Int, 4)
+  initCells <- Set.fromList <$> QC.resize 8 (QC.listOf (genCoord 4 4))
+  compTargets <- Set.fromList <$> QC.resize 4 (QC.listOf (genCoord 3 3))
+  inits <- Set.fromList <$>
+    mapM (\cell -> (CE . Value <$> QC.choose (1, 4)) <*>
+    pure (ss cell)) (Set.toList initCells)
+  comps <- Set.fromList <$>
+    mapM (\(r, c) -> CE <$>
+    compType r c <*>
+    pure (ss (r + 1, c + 1))) (Set.toList compTargets)
+  return $ PE 4 4 (latinSquareCons 4 <> comps <> inits)
+  where
+    compType r c = QC.elements [GreaterThan r c, LessThan r c]
+
 instance Arbitrary PuzzleE where
   arbitrary :: QC.Gen PuzzleE
-  arbitrary = do
-    w <- QC.choose (3, 5)
-    h <- QC.choose (3, 5)
-    cons <- Set.fromList <$> QC.resize 3 (QC.listOf (arbCons w h))
-    return (PE w h cons)
-    where
-      arbCons w h = CE <$> QC.arbitrary <*> (Set.fromList <$> QC.resize 5 (QC.listOf (arbPair w h)))
-      arbPair w h = liftM2 (,) (QC.choose (0, h - 1)) (QC.choose (0, w - 1))
-      cells w h = QC.suchThat (QC.resize 5 $ QC.listOf (arbPair w h)) (not . null)
+  arbitrary = QC.oneof [genSudoku, genFutoshiki]
 
   shrink :: PuzzleE -> [PuzzleE]
   shrink pe = case Set.toList $ constraints pe of
     (x : xs) -> [PE (width pe) (height pe) (Set.fromList xs)]
     _ -> []
 
-instance Arbitrary ConstraintEType where
-  arbitrary :: QC.Gen ConstraintEType
-  arbitrary = QC.oneof [
-    liftM2 (curry Unique) arbInt arbInt,
-    AddsTo <$> arbInt,
-    MultsTo <$> arbInt,
-    GreaterThan <$> arbInt <*> arbInt,
-    LessThan <$> arbInt <*> arbInt,
-    Value <$> arbInt]
-    where
-      arbInt = QC.choose (1, 9)
-
+-- | Any constraints with empty cell groups are discarded during evaluation
 prop_noEmptyCellGroups :: PS.PuzzleSyntax -> QC.Property
 prop_noEmptyCellGroups ps = isRight pe QC.==> not (any (Set.null . cells) (constraints pe'))
   where
@@ -716,16 +740,28 @@ prop_noEmptyCellGroups ps = isRight pe QC.==> not (any (Set.null . cells) (const
 
 prop_inverseConstraints :: PuzzleE -> QC.Property
 prop_inverseConstraints pe = not (Set.null (constraints pe)) QC.==>
-  Set.fromList (Map.keys cellMap) == cells' &&
-  all (\con -> all (`hasCon` con) (cells con)) (constraints pe) &&
-  all (\cell -> all (Set.member cell . cells) (cellMap Map.! cell) ) cells'
+  Set.fromList (Map.keys cellMap) == everyCell &&
+  all (\con -> all (`affectsCon` con) (cells con)) (constraints pe) &&
+  all (\cell -> all (`affectsCell` cell) (cellMap Map.! cell) ) everyCell
     where
-      cells' = allCells (width pe) (height pe)
+      everyCell = allCells (width pe) (height pe)
       cellMap = cellConstraints pe
       hasCon cell con = Set.member con (cellMap Map.! cell)
 
-runTests :: IO ()
-runTests = do
+      affectsCell :: ConstraintE -> (Int, Int) -> Bool
+      affectsCell con cell = Set.member cell (cells con) ||
+        isCompareTarget cell con
+
+      affectsCon :: (Int, Int) -> ConstraintE -> Bool
+      affectsCon cell con = hasCon cell con || isCompareTarget cell con
+
+      isCompareTarget cell con = case constraintType con of
+        GreaterThan r c -> (r, c) == cell
+        LessThan r c -> (r, c) == cell
+        _ -> False
+
+runAllTests :: IO ()
+runAllTests = do
   _ <- testAll
   putStrLn "quickCheck prop_noEmptyCellGroups"
   QC.quickCheck prop_noEmptyCellGroups

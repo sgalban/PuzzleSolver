@@ -10,6 +10,8 @@ import qualified PuzzleEvaluator as PE
 import qualified Data.Set as Set
 import Data.Either (isRight)
 import GHC.Base (Alternative((<|>)))
+import Debug.Trace (trace)
+import Control.Monad (void)
 
 type Cell = (Int, Int)
 
@@ -232,14 +234,14 @@ solutionFromGuesses :: Guesses -> PE.PuzzleE -> PuzzleSolution
 solutionFromGuesses gs pe = PuzzleSolution pe (known gs)
 
 -- | Get's the set of initial guesses for a puzzle, using its dimensions.
--- | All cells could potentially be anything from 0 to 9
-initialGuesses :: PE.PuzzleE -> Guesses
-initialGuesses pe = GS Map.empty (Map.fromList [(key, allVals) | key <- cells])
+-- | All cells could potentially be anything from 0 to maxValue
+initialGuesses :: Int -> PE.PuzzleE -> Guesses
+initialGuesses maxValue pe = GS Map.empty (Map.fromList [(key, allVals) | key <- cells])
   where
     h = PE.height pe
     w = PE.width pe
     cells = [(r, c) | r <- [0..(h - 1)], c <- [0..(w - 1)]]
-    allVals = Set.fromList [0..9]
+    allVals = Set.fromList [0..maxValue]
 
 -- | A type solely used in the below function
 type TakenInits = Maybe (PE.PuzzleE, Guesses, Set.Set Cell)
@@ -252,10 +254,10 @@ type TakenInits = Maybe (PE.PuzzleE, Guesses, Set.Set Cell)
 -- |    MustBe, unless 2 different values are applied to a single cell, in which
 -- |    case an error is thrown
 -- | 3) A set of cells affected by Value constraints
-takeCellInits :: PE.PuzzleE -> TakenInits
-takeCellInits pe = foldr applyCons (Just (pe, gs, Set.empty)) cons
+takeCellInits :: Int -> PE.PuzzleE -> TakenInits
+takeCellInits maxValue pe = foldr applyCons (Just (pe, gs, Set.empty)) cons
   where
-    gs = initialGuesses pe
+    gs = initialGuesses maxValue pe
     cons = PE.constraints pe
 
     applyCons :: PE.ConstraintE -> TakenInits -> TakenInits
@@ -319,11 +321,9 @@ applyHeuristics cell val ccs gs = foldr step (Just gs) cons
 solve :: PS.PuzzleSyntax -> Either SolveError PuzzleSolution
 solve puzzle = case PE.evaluatePuzzle puzzle of
   Left evalError -> Left (EvaluationError evalError)
-  Right pe -> case solveE pe of
+  Right pe -> case solveE 9 pe of
     Just sol -> Right sol
     Nothing -> Left NoSolutionFound
-
--- | Converts Guesses into a PuzzleSolution
 
 {-
  General Strategy:
@@ -343,11 +343,10 @@ solve puzzle = case PE.evaluatePuzzle puzzle of
  made in Step 5 and remove the value from the guess set. Throw an error if this
  results in a NoSol. Either way, return to Step 4
 -}
-
-solveE :: PE.PuzzleE -> Maybe PuzzleSolution
-solveE pe = do
+solveE :: Int -> PE.PuzzleE -> Maybe PuzzleSolution
+solveE maxValue pe = do
   -- Step 1
-  (iPe, iGs, affectedCells) <- takeCellInits pe
+  (iPe, iGs, affectedCells) <- takeCellInits maxValue pe
 
   -- Step 2
   let cc = PE.cellConstraints iPe
@@ -356,7 +355,7 @@ solveE pe = do
   gs <- foldr (applyHeuristicsForCell cc) (Just iGs) affectedCells
 
   -- Steps 4 - 7
-  solution <- (`solutionFromGuesses` iPe) <$> doLoop cc iPe gs
+  solution <- (`solutionFromGuesses` iPe) <$> doLoop 0 cc iPe gs
 
   -- Ensure the original puzzle matches
   return $ solution { puzzle = pe }
@@ -369,15 +368,15 @@ solveE pe = do
         Known val -> applyHeuristics cell val cellCons guesses
         _ -> return guesses
 
-    doLoop :: PE.CellConstraints -> PE.PuzzleE -> Guesses -> Maybe Guesses
-    doLoop cc pe gs = case Map.lookupMin (potential gs) of
+    doLoop :: Int -> PE.CellConstraints -> PE.PuzzleE -> Guesses -> Maybe Guesses
+    doLoop depth cc pe gs = case Map.lookupMin (potential gs) of
       -- Step 4
       Nothing -> return gs
       -- Step 5
-      Just cellVals -> tryAtCell cc pe gs cellVals
+      Just cellVals -> tryAtCell depth cc pe gs cellVals
 
-    tryAtCell :: PE.CellConstraints -> PE.PuzzleE -> Guesses -> (Cell, Set.Set Int) -> Maybe Guesses
-    tryAtCell cc pe gs (cell, potentials) = foldr step Nothing potentials
+    tryAtCell :: Int -> PE.CellConstraints -> PE.PuzzleE -> Guesses -> (Cell, Set.Set Int) -> Maybe Guesses
+    tryAtCell depth cc pe gs (cell, potentials) = foldr step Nothing potentials
       where
         step val acc = tryValue val <|> acc
         tryValue val = do
@@ -386,11 +385,8 @@ solveE pe = do
           newGuesses <- applyHeuristicsForCell cc cell gs'
           -- Step 7
           if validateG newGuesses pe
-            then doLoop cc pe newGuesses
+            then doLoop (depth + 1) cc pe newGuesses
             else Nothing
-
--- >>> validate <$> solveE PE.eFutoshiki
--- Just True
 
 -- | Tests
 
@@ -456,17 +452,17 @@ sKenKen = PuzzleSolution PE.eKenKen $ toSolutionMap 4 [
 prop_solveSamePuzzle :: PE.PuzzleE -> QC.Property
 prop_solveSamePuzzle pe = isJust pSol QC.==> (puzzle <$> pSol) == Just pe
   where
-    pSol = solveE pe
+    pSol = solveE 4 pe
 
 prop_solveValid :: PE.PuzzleE -> QC.Property
 prop_solveValid pe = isJust pSol QC.==> (validate <$> pSol) == Just True
   where
-    pSol = solveE pe
+    pSol = solveE 4 pe
 
 prop_solveComplete :: PE.PuzzleE -> QC.Property
 prop_solveComplete pe = isJust pSol QC.==> (isComplete <$> pSol) == Just True
   where
-    pSol = solveE pe
+    pSol = solveE 4 pe
 
 prop_emptyValid :: PE.PuzzleE -> Bool
 prop_emptyValid p = validate $ PuzzleSolution p Map.empty
@@ -492,11 +488,11 @@ test_solveE :: Test
 test_solveE =
   "Testing Solver"
     ~: TestList
-      [solveE PE.eSudSmall ~?= Just sSudSmall,
-      solveE PE.eMagSquare ~?= Just sMagSquare,
-      solveE PE.eKakSmall ~?= Just sKakSmall,
-      solveE PE.eFutoshiki ~?= Just sFutoshiki,
-      solveE PE.eKenKen ~?= Just sKenKen]
+      [solveE 9 PE.eSudSmall ~?= Just sSudSmall,
+      solveE 9 PE.eMagSquare ~?= Just sMagSquare,
+      solveE 9 PE.eKakSmall ~?= Just sKakSmall,
+      solveE 9 PE.eFutoshiki ~?= Just sFutoshiki,
+      solveE 9 PE.eKenKen ~?= Just sKenKen]
 
 test_solveFull :: Test
 test_solveFull =
@@ -508,8 +504,10 @@ test_solveFull =
       solve PS.pFutoshiki ~?= Right sFutoshiki,
       solve PS.pKenKen ~?= Right sKenKen]
 
-checkProps :: IO ()
-checkProps = do
+runAllTests :: IO ()
+runAllTests = do
+  _ <- runTestTT test_solveE
+  _ <- runTestTT test_solveFull
   putStrLn "solveSamePuzzle"
   QC.quickCheck prop_solveSamePuzzle
   putStrLn "solveValid"

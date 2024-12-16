@@ -1,4 +1,4 @@
-module PuzzlePrinter (printPuzzleE, printPuzzleSolution, main, prettyPrint) where
+module PuzzlePrinter (printPuzzleE, printPuzzleSolution, runAllTests, prettyPrint) where
 import PuzzleSyntax
 import PuzzleSolver (PuzzleSolution(PuzzleSolution))
 import PuzzleEvaluator (PuzzleE (PE), ConstraintE (CE), ConstraintEType (Value))
@@ -217,8 +217,8 @@ testPrettyPrint = do
   putStrLn $ prettyPrint testPuzzle4
 
 
-main :: IO ()
-main = do
+runAllTests :: IO ()
+runAllTests = do
   testPrettyPrint
   putStrLn "Printing PuzzleE:"
   putStrLn $ printPuzzleE examplePuzzleE

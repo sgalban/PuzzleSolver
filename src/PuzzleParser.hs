@@ -373,9 +373,7 @@ prop_roundtrip :: PuzzleSyntax -> Property
 prop_roundtrip puzzle =
   let prettyStr = prettyPrint puzzle
       parsed = P.parse parsePuzzle prettyStr
-  in --trace ("Testing puzzle: " ++ show puzzle) $  -- Print the puzzle before anything happens  -- Print the puzzle before anything happens
-       -- Print the puzzle before anything happens
-     --trace ("Pretty printed: " ++ prettyStr) $  -- Print the pretty string as well  -- Print the pretty string as well
+  in 
      case parsed of
        Left err ->
          counterexample ("Parsing failed: " ++ show err) False
@@ -400,9 +398,8 @@ testParseSample filename expected = do
     putStrLn ("\nTesting " ++ filename)
     runTestTT (parsed ~?= Right expected)
 
--- Main to Run Tests
-main :: IO ()
-main = do
+runAllTests :: IO ()
+runAllTests = do
   _ <- testAll
   _ <- testParseSample "samples/empty.pz" pEmpty
   _ <- testParseSample "samples/sudoku-small.pz" pSudSmall

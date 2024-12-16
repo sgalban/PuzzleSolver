@@ -102,7 +102,7 @@ looper = go initialLooper
         -- | Attempt to solve the current puzzle, starting with the current solution
         Just ("solve", _) -> case pe l of
           Nothing -> printNoPuzzleLoaded l
-          Just pe' -> case PSol.solveE pe' of
+          Just pe' -> case PSol.solveE 9 pe' of
             Nothing -> printAndGo l "Unable to solve puzzle"
             Just ps' -> go $ l { pSol = Just ps', prev = Just l }
             
