@@ -1,17 +1,17 @@
 # **Puzzle Solver in Haskell**
 
 ## **Authors**
-- **Steven Galban** – *PennKey: *
+- **Steven Galban** – *PennKey: sgalban *
 - **Quynh Anh Huynh** – *PennKey: 61117675*
 
 ---
 
 ## **Project overview**
-This project is a **Haskell-based Puzzle Solver** designed to handle grid-based logic puzzles such as **Sudoku**, **Magic Square**, and **Kakuro**. The project provides the following components:
-- A **DSL (Domain-Specific Language) syntax** to define puzzles and constraints.
-- A **Parser** to parse puzzle definitions from files.
-- An **Evaluator** to validate and process puzzle constraints.
-- A **Solver** to compute valid solutions to the puzzles.
+This project is a **Haskell-based Puzzle Solver** which can be used to solve grid-based logic puzzles including (but not limited to) **Sudoku**, **Magic Squares**, **Kakuro**. Such puzzles can be described via a custom DSL, which can then be evaluated and solved. The primary components of this project include:
+- A **DSL (Domain-Specific Language) syntax** to define puzzles and their constraints.
+- A **Parser** to parse puzzle definitions from code written in the DSL.
+- An **Evaluator** to simplify syntax trees into a more manageable form.
+- A **Solver** that both validates and computes solutions to puzzles.
 - A **Command-Line Interface (CLI)** for interactive puzzle solving.
 - A **Printer** to display puzzles and solutions as **ASCII grids**.
 
@@ -19,65 +19,43 @@ This project is a **Haskell-based Puzzle Solver** designed to handle grid-based 
 
 ## **Project structure**
 
-The project is organized into the following files:
+The project consists of the following modules, which should be read in the order they're listed:
 
 1. **`PuzzleSyntax.hs`**  
-   Defines the core data structures and types for puzzles:
+   Defines the syntax tree of our custom DSL. Some structures include:
    - **`NumExp`**: Represents numeric expressions.
-   - **`PuzzleSyntax`**: The grid definition and constraints.
-   - **`ConstraintRule`**: Rules applied to cells.
+   - **`Constraint`**: Describes restrictions that can be placed on the values of certain cells.
+   - **`CellGroup`**: Describes the set of cells affected by a particular constraint or constraint list.
 
-   **Start here** to understand the data model for puzzles.
+   The DSL is described in detail (in EBNF) in `doc/puzzle-spec.txt`
+   Sample puzzles are also available to browse in the `samples` directory.
 
 2. **`PuzzleParser.hs`**  
    Provides a **parser** for reading puzzle definitions from text files.  
-   - Parses grid definitions, constraints, and cell groups.
+   - Parses grid definitions, constraints, and cell groups into syntax trees.
    - Includes test cases to validate parsing functionality.
 
-   **Read this second** to see how puzzles are defined and parsed.
-
-3. **`PuzzleEvaluator.hs`**  
-   Evaluates parsed puzzles and constraints.  
-   - Processes `NumExp`, ranges, and cell groups.
-   - Validates constraints and prepares puzzles for solving.
-
-   **Read this third** to understand how constraints are evaluated.
+3. **`PuzzleEvaluator.hs`**
+   Evaluates syntax trees into a more manageable form, `PuzzleE`.
+   - `NumExp`s are transformed into simple integers.
+   - `CellGroup`s are transformed into sets of particular cells.
 
 4. **`PuzzleSolver.hs`**
-   - Defines **`PuzzleSolution`** that represents solutions to puzzles.
+   - Defines the **`PuzzleSolution`** type, which represents a (potentially partial) solution to a puzzle.
    Implements the puzzle-solving logic:  
-   - Checks the validity of solutions.
-   - Attempts to solve puzzles using the defined rules.
-   - Includes properties tested with **QuickCheck**.
-
-   **Read this fourth** to see the solving strategy.
+   - Checks the validity of solutions, i.e. whether or not they violate any constraints.
+   - Uses a combination of a depth-first-search and heuristics associated with the constraints to find a solution to an evaluated puzzle, if one exists.
 
 5. **`PuzzlePrinter.hs`**  
-   Provides functions to display puzzles and solutions as **ASCII grids**:
-   - **`printPuzzleE`**: Prints a `PuzzleE` grid with constraints.
-   - **`printPuzzleSolution`**: Prints a solved puzzle grid with cell values.
-
-   Use this module for **visualizing puzzles** in an easy-to-read grid format.
+   Includes a variety of functions used to vizualize the various puzzle representations in more readable forms:
+   - **`printPuzzleE`** and **`printPuzzleSolution`** both print puzzles as ASCII grids. The former only prints the initial cell values of a `PuzzleE`, while the latter prints current values in a `PuzzleSolution.
+   - Includes a pretty printer, that can print a syntax tree (i.e. `PuzzleSyntax`) as Puzzle code
 
 6. **`PuzzleCLI.hs`**  
-   Provides an interactive **Command-Line Interface** (CLI) to load, validate, solve, and manipulate puzzles.  
-   Commands include:
-   - `:l filename` – Load a puzzle file.
-   - `:v` – Validate the current solution.
-   - `:s` – Solve the puzzle.
-   - `:a r c v` – Add a value to a cell.
-   - `:d r c` – Delete a value from a cell.
+   Provides an interactive **Command-Line Interface** (CLI) to load, validate, solve, and manipulate puzzles, along with the ability to undo actions. See the `help` command for more details.
 
-   **Read this last** to understand how the interactive user interface works.
-
-7. **`samples/`**  
-   Contains sample puzzle files, such as:
-   - `sudoku-small.pz`
-   - `magicsquare.pz`
-   - `kakuro-small.pz`
-
-8. **`Main.hs`**  
-   The project entry point. It runs the **CLI** for interactive usage.
+7. **`Main.hs`**  
+   The project entry point. It runs the **CLI** for interactive use.
 
 ---
 
@@ -88,10 +66,5 @@ This project depends on the following libraries:
 - QuickCheck: For property-based testing.
 - HUnit: For unit testing.
 - PrettyPrint: For rendering puzzles and solutions in a readable forma
+- mtl: For monad transformers.
 ---
-
-## **Compilation and execution**
-
-1. **Build the project**  
-   Run the following command in the project root directory to build the project:
-
