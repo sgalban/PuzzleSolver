@@ -1,7 +1,7 @@
 # **Puzzle Solver in Haskell**
 
 ## **Authors**
-- **Steven Galban** – *PennKey: sgalban *
+- **Steven Galban** – *PennKey: sgalban*
 - **Quynh Anh Huynh** – *PennKey: 61117675*
 
 ---
