@@ -6,8 +6,7 @@ import PuzzleParser qualified as PP
 import Data.Maybe (fromMaybe, isJust)
 import Data.Map qualified as Map
 import Data.List qualified as List
-import PuzzlePrinter (printPuzzleE, printPuzzleSolution)
-import Text.PrettyPrint (render)
+import PuzzlePrinter (printPuzzleE, printPuzzleSolution, prettyPrint)
 import Text.Read (readMaybe)
 
 data Looper = Looper
@@ -110,7 +109,7 @@ looper = go initialLooper
         -- | Print out the current loaded puzzle code
         Just ("print", _) -> case pSyn l of
           Nothing -> printNoPuzzleLoaded l
-          Just pSyn' -> printAndGo l (render $ PP.prettyPuzzle pSyn')
+          Just pSyn' -> printAndGo l (prettyPrint pSyn')
           
         -- | Print out the current puzzle as an ASCII grid
         Just ("show-puzzle", _) -> case pe l of
@@ -134,7 +133,7 @@ looper = go initialLooper
                           Nothing -> Nothing
                           Just (r', c', val') -> do
                             sol' <- sol
-                            PSol.putCellValue sol' (r', c') val'
+                            PSol.putCellValue sol' (r', c') (val' `mod` 10)
             if isJust newSol
               then go (l { pSol = newSol, prev = Just l})
               else printAndGo l "There was an error setting the cell value"
