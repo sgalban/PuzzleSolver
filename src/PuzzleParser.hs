@@ -1,4 +1,4 @@
-module PuzzleParser where
+module PuzzleParser (runAllTests, parsePuzzle, parsePuzzleFromFile) where
 
 import Prelude hiding (filter)
 import Control.Applicative (Alternative(..))

@@ -1,4 +1,4 @@
-module PuzzleCLI where
+module PuzzleCLI (looper) where
 import PuzzleSyntax qualified as PSyn
 import PuzzleSolver qualified as PSol
 import PuzzleEvaluator qualified as PE

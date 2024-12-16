@@ -52,6 +52,7 @@ data EvalError
   | OutOfBounds
   deriving (Show, Eq)
 
+-- | Gets the string to print after an error is thrown
 getErrorString :: EvalError -> String
 getErrorString err = "Evaluation Error: " ++ errString err
   where
