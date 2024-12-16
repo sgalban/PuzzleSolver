@@ -41,26 +41,35 @@ brackets p = between (keyword "[") p (keyword "]")
 braces :: Parser a -> Parser a
 braces p = between (keyword "{") p (keyword "}")
 
+-- Top-level parser for numeric expressions
 parseNumExp :: Parser NumExp
-parseNumExp = parseRepeatVar <|> parseNumber <|> PuzzleParser.parens parseOpExpr
+parseNumExp = parseTerm `chainl1` parseAddSub  
+
+-- Parser for terms (higher precedence: * / % ^)
+parseTerm :: Parser NumExp
+parseTerm = parseFactor `chainl1` parseMulDivMod  
+
+-- Parser for factors (highest precedence: numbers, variables, and parenthesis)
+parseFactor :: Parser NumExp
+parseFactor = parseRepeatVar <|> parseNumber <|> PuzzleParser.parens parseNumExp
   where
     parseRepeatVar = RepeatVar <$> (Parser.char '$' *> parseInt)
     parseNumber = Number <$> parseInt
 
-parseOpExpr :: Parser NumExp
-parseOpExpr = parseNumExp `chainl1` parseOperator
+-- Parser for addition and subtraction
+parseAddSub :: Parser (NumExp -> NumExp -> NumExp)
+parseAddSub =
+      (keyword "+" *> pure (Op2 `flip` Plus))
+  <|> (keyword "-" *> pure (Op2 `flip` Minus))
 
-parseOperator :: Parser (NumExp -> NumExp -> NumExp)
-parseOperator = (\op left right -> Op2 left op right) <$> parseBop
+-- Parser for multiplication, division, power and modulo
+parseMulDivMod :: Parser (NumExp -> NumExp -> NumExp)
+parseMulDivMod =
+      (keyword "*" *> pure (Op2 `flip` Times))
+  <|> (keyword "//" *> pure (Op2 `flip` Divide))
+  <|> (keyword "%" *> pure (Op2 `flip` Modulo))
+  <|> (keyword "^" *> pure (Op2 `flip` Power))
 
-parseBop :: Parser Bop
-parseBop =
-      (keyword "+" *> pure Plus)
-  <|> (keyword "-" *> pure Minus)
-  <|> (keyword "*" *> pure Times)
-  <|> (keyword "//" *> pure Divide)
-  <|> (keyword "%" *> pure Modulo)
-  <|> (keyword "^" *> pure Power)
 testParseNumExp :: Test
 testParseNumExp = TestList
   [ parse parseNumExp "42" ~?= Right (Number 42),
@@ -68,8 +77,9 @@ testParseNumExp = TestList
     parse parseNumExp "(-1 + 2)" ~?= Right (Op2 (Number (-1)) Plus (Number 2)),
     parse parseNumExp "(3 * (4 + 5))" ~?= Right (Op2 (Number 3) Times (Op2 (Number 4) Plus (Number 5)))
   ]
--- >>> parse parseNumExp "(1 - -2)"
+-- >>> parse parseNumExp "1 - -2"
 -- Right (Op2 (Number 1) Minus (Number (-2)))
+
 -- >>> runTestTT testParseNumExp
 -- Counts {cases = 4, tried = 4, errors = 0, failures = 0}
 
@@ -347,40 +357,6 @@ testParsePuzzle = TestList
 -- | Parse a puzzle directly from a file
 parsePuzzleFromFile :: String -> IO (Either ParseError PuzzleSyntax)
 parsePuzzleFromFile = Parser.parseFromFile parsePuzzle
-
--- -- Main for testing
--- main :: IO ()
--- main = do
---   print testPuzzle
---   runTestTT $ TestList
---     [ "Whitespace Parser" ~: runTestTT test_wsP,
---       "Keyword Parser" ~: runTestTT test_keyword,
---       "Integer Parser" ~: runTestTT testParseInt,
---       "Binary Op Parser" ~: runTestTT testParseBop
---     ]
-
--- testInput :: String
--- testInput = unlines
---   [ "grid(3, 3) {"
---   , "  constraint unique(1 to 9) in all"
---   , ""
---   , "  repeat(0, 2) {"
---   , "    constraint addsTo(15) in row $0"
---   , "  }"
---   , ""
---   , "  repeat(0, 2) {"
---   , "    constraint addsTo(15) in col $0"
---   , "  }"
---   , ""
---   , "  constraint addsTo(15) in cells [cell(0, 0), cell(1, 1), cell(2, 2)]"
---   , "  constraint addsTo(15) in cells [cell(0, 2), cell(1, 1), cell(2, 0)]"
---   , ""
---   , "  init cell(0, 1) with 9"
---   , "  init cell(1, 0) with 7"
---   , "  init cell(1, 2) with 3"
---   , "  init cell(2, 2) with 8"
---   , "}"
---   ]
 
 testInput :: String
 testInput = unlines
