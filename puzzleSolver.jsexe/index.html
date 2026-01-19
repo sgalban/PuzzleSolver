@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    <!-- xterm.js -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+
+    <style>
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+        }
+        #terminal {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+<div id="terminal"></div>
+
+<script>
+    // ---- xterm setup ----
+    const term = new Terminal({
+        cursorBlink: true,
+        convertEol: true
+    });
+    term.open(document.getElementById("terminal"));
+
+    term.writeln("PuzzleSolver v0.1.0.1");
+    term.writeln("Authored by Steven Galban and Quynh Anh Huynh for CIS 5520 at the University of Pennsylvania");
+    term.writeln("Type 'help' for commands.");
+    term.writeln("");
+
+    term.focus();
+
+    // ---- input handling ----
+    let lineBuffer = "";
+    let pendingCallback = null;
+
+    window.haskellGetLine = function (cb) {
+        pendingCallback = cb;
+    };
+
+    term.onData((data) => {
+        if (!pendingCallback) {
+            return;
+        }
+
+        switch (data) {
+            case "\r":
+                term.write("\r\n");
+                const line = lineBuffer;
+                lineBuffer = "";
+
+                const cb = pendingCallback;
+                pendingCallback = null;
+                cb(line);
+                break;
+
+            case "\u007F": // Backspace
+                if (lineBuffer.length > 0) {
+                    lineBuffer = lineBuffer.slice(0, -1);
+                    term.write("\b \b");
+                }
+                break;
+
+            default:
+                lineBuffer += data;
+                term.write(data);
+        }
+    });
+
+    (function() {
+        console.log = function(...args) {
+            args.forEach(arg => term.write(String(arg)));
+        };
+    })();
+</script>
+
+<script>
+    window.vfs = new Map()
+    window.haskellUploadFile = function(cb) {
+        const input = document.getElementById("fileInput")
+        input.onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                window.vfs = window.vfs || new Map();
+                window.vfs.set(file.name, reader.result);
+                cb(); // signal completion to Haskell
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    };
+
+    window.vfsReadFileWrapper = function(filename) {
+      const v = window.vfs.get(filename);
+      if (!v) {
+          return null
+      }
+      return v;
+    };
+
+    async function preloadSample(name, url) {
+        const resp = await fetch(url);
+        if (!resp.ok) {
+          console.error("Failed to preload sample:", url);
+          return;
+        }
+        const text = await resp.text();
+        window.vfs.set(name, text);
+    }
+
+    async function preloadSamples() {
+        await Promise.all([
+            preloadSample("empty.pz", "samples/empty.pz"),
+            preloadSample("futoshiki.pz", "samples/futoshiki.pz"),
+            preloadSample("kakuro-small.pz", "samples/kakuro-small.pz"),
+            preloadSample("kenken.pz", "samples/kenken.pz"),
+            preloadSample("magicsquare.pz", "samples/magicsquare.pz"),
+            preloadSample("sudoku-small.pz", "samples/sudoku-small.pz"),
+            preloadSample("sudoku-normal.pz", "samples/sudoku-normal.pz")
+        ]);
+    }
+    window.samplesReady = preloadSamples()
+</script>
+
+<script>
+    if (typeof h$base_writeStdout === "undefined") {
+        h$base_writeStdout = function(fd, buf, off, len) {
+            const bytes = buf.subarray(off, off+len);
+            const text = new TextDecoder().decode(bytes);
+            term.write(text);
+        };
+    }
+    if (typeof h$base_writeStderr === "undefined") {
+        h$base_writeStderr = function(fd, buf, off, len) {
+            const bytes = buf.subarray(off, off+len);
+            const text = new TextDecoder().decode(bytes);
+            term.write(text);
+        };
+    }
+</script>
+
+<!-- GHC JS output -->
+<script src="all.js"></script>
+<input id="fileInput" type="file" style="display:none" />
+</body>
+</html>

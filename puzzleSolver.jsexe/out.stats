@@ -1,0 +1,750 @@
+number of modules: 699
+packed metadata:   7183822
+
+code size summary per package (in bytes):
+
+HUnit-1.6.2.0-40bd02b3cc040611f8a05366c3d8de07bbb8d27bd426aec242b33d72f8d78375:76384
+QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b:486329
+array-0.5.7.0-inplace:   0
+base:                    132702
+bytestring-0.12.1.0-inplace:0
+call-stack-0.4.0-a2d34cd8e2d3266d4866d5d1907f896d5c52e64a8a73d36869066fae6a7c101e:611
+containers-0.7-inplace:  223497
+deepseq-1.5.0.0-inplace: 0
+ghc-bignum:              149756
+ghc-boot-th-9.10.0.20240413-inplace:0
+ghc-internal:            1302185
+ghc-prim:                42391
+mtl-2.3.1-inplace:       8346
+pretty-1.1.3.6-inplace:  131617
+puzzleSolver-0.1.0.0-inplace:0
+puzzleSolver-0.1.0.0-inplace-puzzleSolver:1158644
+random-1.3.1-1f11f3ccc12fdf2e7886f60614a48e9a46c6cc1ca724c0881f8fe189d811c6f4:11911
+splitmix-0.1.3.2-effa441e356f54207d03876ad450c3ea73cb72e84c1ac6087445b5ca2839b7df:10497
+template-haskell:        0
+transformers-0.6.1.1-inplace:24116
+
+
+code size per module (in bytes):
+
+    $HUnit-1.6.2.0-40bd02b3cc040611f8a05366c3d8de07bbb8d27bd426aec242b33d72f8d78375$Paths_HUnit:0
+    $HUnit-1.6.2.0-40bd02b3cc040611f8a05366c3d8de07bbb8d27bd426aec242b33d72f8d78375$Test.HUnit:0
+    $HUnit-1.6.2.0-40bd02b3cc040611f8a05366c3d8de07bbb8d27bd426aec242b33d72f8d78375$Test.HUnit.Base:23407
+    $HUnit-1.6.2.0-40bd02b3cc040611f8a05366c3d8de07bbb8d27bd426aec242b33d72f8d78375$Test.HUnit.Lang:29205
+    $HUnit-1.6.2.0-40bd02b3cc040611f8a05366c3d8de07bbb8d27bd426aec242b33d72f8d78375$Test.HUnit.Terminal:0
+    $HUnit-1.6.2.0-40bd02b3cc040611f8a05366c3d8de07bbb8d27bd426aec242b33d72f8d78375$Test.HUnit.Text:23772
+
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck:0
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.All:0
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Arbitrary:41149
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Exception:2519
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Features:0
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Function:0
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Gen:64954
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Gen.Unsafe:0
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Modifiers:0
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Monadic:0
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Monoids:0
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Poly:0
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Property:74108
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Random:17738
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.State:4781
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Test:250378
+    $QuickCheck-2.17.1.0-b30773619c446e3b7850d6b9f3ea3177bd532f46e75c1e1510df7b6b55f7a33b$Test.QuickCheck.Text:30702
+
+    $array-0.5.7.0-inplace$Data.Array:  0
+    $array-0.5.7.0-inplace$Data.Array.Base:0
+    $array-0.5.7.0-inplace$Data.Array.IArray:0
+    $array-0.5.7.0-inplace$Data.Array.IO:0
+    $array-0.5.7.0-inplace$Data.Array.IO.Internals:0
+    $array-0.5.7.0-inplace$Data.Array.IO.Safe:0
+    $array-0.5.7.0-inplace$Data.Array.MArray:0
+    $array-0.5.7.0-inplace$Data.Array.MArray.Safe:0
+    $array-0.5.7.0-inplace$Data.Array.ST:0
+    $array-0.5.7.0-inplace$Data.Array.ST.Safe:0
+    $array-0.5.7.0-inplace$Data.Array.Storable:0
+    $array-0.5.7.0-inplace$Data.Array.Storable.Internals:0
+    $array-0.5.7.0-inplace$Data.Array.Storable.Safe:0
+    $array-0.5.7.0-inplace$Data.Array.Unboxed:0
+    $array-0.5.7.0-inplace$Data.Array.Unsafe:0
+
+    $base$Control.Applicative:          0
+    $base$Control.Arrow:                0
+    $base$Control.Category:             0
+    $base$Control.Concurrent:           0
+    $base$Control.Concurrent.Chan:      0
+    $base$Control.Concurrent.MVar:      0
+    $base$Control.Concurrent.QSem:      0
+    $base$Control.Concurrent.QSemN:     0
+    $base$Control.Exception:            0
+    $base$Control.Exception.Annotation: 0
+    $base$Control.Exception.Backtrace:  0
+    $base$Control.Exception.Base:       0
+    $base$Control.Exception.Context:    0
+    $base$Control.Monad:                0
+    $base$Control.Monad.Fail:           0
+    $base$Control.Monad.Fix:            0
+    $base$Control.Monad.IO.Class:       0
+    $base$Control.Monad.Instances:      0
+    $base$Control.Monad.ST:             0
+    $base$Control.Monad.ST.Lazy:        0
+    $base$Control.Monad.ST.Lazy.Safe:   0
+    $base$Control.Monad.ST.Lazy.Unsafe: 0
+    $base$Control.Monad.ST.Safe:        0
+    $base$Control.Monad.ST.Strict:      0
+    $base$Control.Monad.ST.Unsafe:      0
+    $base$Control.Monad.Zip:            0
+    $base$Data.Array.Byte:              215
+    $base$Data.Bifoldable:              0
+    $base$Data.Bifoldable1:             0
+    $base$Data.Bifunctor:               0
+    $base$Data.Bitraversable:           0
+    $base$Data.Bits:                    0
+    $base$Data.Bool:                    0
+    $base$Data.Char:                    0
+    $base$Data.Coerce:                  0
+    $base$Data.Complex:                 0
+    $base$Data.Data:                    0
+    $base$Data.Dynamic:                 0
+    $base$Data.Either:                  0
+    $base$Data.Enum:                    0
+    $base$Data.Eq:                      0
+    $base$Data.Fixed:                   0
+    $base$Data.Foldable:                0
+    $base$Data.Foldable1:               0
+    $base$Data.Function:                0
+    $base$Data.Functor:                 0
+    $base$Data.Functor.Classes:         0
+    $base$Data.Functor.Compose:         0
+    $base$Data.Functor.Const:           0
+    $base$Data.Functor.Contravariant:   0
+    $base$Data.Functor.Identity:        0
+    $base$Data.Functor.Product:         0
+    $base$Data.Functor.Sum:             0
+    $base$Data.IORef:                   0
+    $base$Data.Int:                     0
+    $base$Data.Ix:                      0
+    $base$Data.Kind:                    0
+    $base$Data.List:                    0
+    $base$Data.List.NonEmpty:           0
+    $base$Data.Maybe:                   0
+    $base$Data.Monoid:                  0
+    $base$Data.Ord:                     0
+    $base$Data.Proxy:                   0
+    $base$Data.Ratio:                   0
+    $base$Data.STRef:                   0
+    $base$Data.STRef.Lazy:              0
+    $base$Data.STRef.Strict:            0
+    $base$Data.Semigroup:               0
+    $base$Data.String:                  0
+    $base$Data.Traversable:             0
+    $base$Data.Tuple:                   0
+    $base$Data.Type.Bool:               0
+    $base$Data.Type.Coercion:           0
+    $base$Data.Type.Equality:           0
+    $base$Data.Type.Ord:                0
+    $base$Data.Typeable:                0
+    $base$Data.Unique:                  0
+    $base$Data.Version:                 0
+    $base$Data.Void:                    0
+    $base$Data.Word:                    0
+    $base$Debug.Trace:                  0
+    $base$Foreign:                      0
+    $base$Foreign.C:                    0
+    $base$Foreign.C.ConstPtr:           0
+    $base$Foreign.C.Error:              0
+    $base$Foreign.C.String:             0
+    $base$Foreign.C.Types:              0
+    $base$Foreign.Concurrent:           0
+    $base$Foreign.ForeignPtr:           0
+    $base$Foreign.ForeignPtr.Safe:      0
+    $base$Foreign.ForeignPtr.Unsafe:    0
+    $base$Foreign.Marshal:              0
+    $base$Foreign.Marshal.Alloc:        0
+    $base$Foreign.Marshal.Array:        0
+    $base$Foreign.Marshal.Error:        0
+    $base$Foreign.Marshal.Pool:         0
+    $base$Foreign.Marshal.Safe:         0
+    $base$Foreign.Marshal.Unsafe:       0
+    $base$Foreign.Marshal.Utils:        0
+    $base$Foreign.Ptr:                  0
+    $base$Foreign.Safe:                 0
+    $base$Foreign.StablePtr:            0
+    $base$Foreign.Storable:             0
+    $base$GHC.Arr:                      0
+    $base$GHC.ArrayArray:               0
+    $base$GHC.Base:                     0
+    $base$GHC.Bits:                     0
+    $base$GHC.ByteOrder:                0
+    $base$GHC.Char:                     0
+    $base$GHC.Clock:                    0
+    $base$GHC.Conc:                     0
+    $base$GHC.Conc.IO:                  0
+    $base$GHC.Conc.Signal:              0
+    $base$GHC.Conc.Sync:                0
+    $base$GHC.ConsoleHandler:           0
+    $base$GHC.Constants:                0
+    $base$GHC.Desugar:                  0
+    $base$GHC.Encoding.UTF8:            0
+    $base$GHC.Enum:                     0
+    $base$GHC.Environment:              0
+    $base$GHC.Err:                      0
+    $base$GHC.Event:                    0
+    $base$GHC.Event.TimeOut:            0
+    $base$GHC.Exception:                0
+    $base$GHC.Exception.Type:           0
+    $base$GHC.ExecutionStack:           0
+    $base$GHC.ExecutionStack.Internal:  0
+    $base$GHC.Exts:                     0
+    $base$GHC.Fingerprint:              0
+    $base$GHC.Fingerprint.Type:         0
+    $base$GHC.Float:                    0
+    $base$GHC.Float.ConversionUtils:    0
+    $base$GHC.Float.RealFracMethods:    0
+    $base$GHC.Foreign:                  0
+    $base$GHC.ForeignPtr:               0
+    $base$GHC.GHCi:                     0
+    $base$GHC.GHCi.Helpers:             0
+    $base$GHC.Generics:                 0
+    $base$GHC.IO:                       0
+    $base$GHC.IO.Buffer:                0
+    $base$GHC.IO.BufferedIO:            0
+    $base$GHC.IO.Device:                0
+    $base$GHC.IO.Encoding:              0
+    $base$GHC.IO.Encoding.CodePage:     0
+    $base$GHC.IO.Encoding.Failure:      0
+    $base$GHC.IO.Encoding.Iconv:        0
+    $base$GHC.IO.Encoding.Latin1:       0
+    $base$GHC.IO.Encoding.Types:        0
+    $base$GHC.IO.Encoding.UTF16:        0
+    $base$GHC.IO.Encoding.UTF32:        0
+    $base$GHC.IO.Encoding.UTF8:         0
+    $base$GHC.IO.Exception:             0
+    $base$GHC.IO.FD:                    0
+    $base$GHC.IO.Handle:                0
+    $base$GHC.IO.Handle.FD:             0
+    $base$GHC.IO.Handle.Internals:      0
+    $base$GHC.IO.Handle.Lock:           0
+    $base$GHC.IO.Handle.Text:           0
+    $base$GHC.IO.Handle.Types:          0
+    $base$GHC.IO.IOMode:                0
+    $base$GHC.IO.StdHandles:            0
+    $base$GHC.IO.SubSystem:             0
+    $base$GHC.IO.Unsafe:                0
+    $base$GHC.IOArray:                  0
+    $base$GHC.IOPort:                   0
+    $base$GHC.IORef:                    0
+    $base$GHC.InfoProv:                 0
+    $base$GHC.Int:                      0
+    $base$GHC.Integer:                  0
+    $base$GHC.Integer.Logarithms:       0
+    $base$GHC.IsList:                   0
+    $base$GHC.Ix:                       0
+    $base$GHC.JS.Foreign.Callback:      0
+    $base$GHC.JS.Prim:                  0
+    $base$GHC.JS.Prim.Internal:         0
+    $base$GHC.JS.Prim.Internal.Build:   0
+    $base$GHC.List:                     0
+    $base$GHC.MVar:                     0
+    $base$GHC.Maybe:                    0
+    $base$GHC.Natural:                  0
+    $base$GHC.Num:                      0
+    $base$GHC.OldList:                  0
+    $base$GHC.OverloadedLabels:         0
+    $base$GHC.Pack:                     0
+    $base$GHC.Profiling:                0
+    $base$GHC.Ptr:                      0
+    $base$GHC.RTS.Flags:                0
+    $base$GHC.Read:                     0
+    $base$GHC.Real:                     0
+    $base$GHC.Records:                  0
+    $base$GHC.ResponseFile:             0
+    $base$GHC.ST:                       0
+    $base$GHC.STRef:                    0
+    $base$GHC.Show:                     0
+    $base$GHC.Stable:                   0
+    $base$GHC.StableName:               0
+    $base$GHC.Stack:                    0
+    $base$GHC.Stack.CCS:                0
+    $base$GHC.Stack.CloneStack:         0
+    $base$GHC.Stack.Types:              0
+    $base$GHC.StaticPtr:                0
+    $base$GHC.Stats:                    0
+    $base$GHC.Storable:                 0
+    $base$GHC.TopHandler:               0
+    $base$GHC.TypeError:                0
+    $base$GHC.TypeLits:                 0
+    $base$GHC.TypeLits.Internal:        0
+    $base$GHC.TypeNats:                 0
+    $base$GHC.TypeNats.Internal:        0
+    $base$GHC.Unicode:                  0
+    $base$GHC.Weak:                     0
+    $base$GHC.Weak.Finalize:            0
+    $base$GHC.Word:                     0
+    $base$Numeric:                      0
+    $base$Numeric.Natural:              0
+    $base$Prelude:                      0
+    $base$System.CPUTime:               0
+    $base$System.CPUTime.Javascript:    0
+    $base$System.CPUTime.Unsupported:   0
+    $base$System.CPUTime.Utils:         0
+    $base$System.Console.GetOpt:        0
+    $base$System.Environment:           0
+    $base$System.Environment.Blank:     0
+    $base$System.Exit:                  0
+    $base$System.IO:                    0
+    $base$System.IO.Error:              0
+    $base$System.IO.Unsafe:             0
+    $base$System.Info:                  0
+    $base$System.Mem:                   0
+    $base$System.Mem.StableName:        0
+    $base$System.Mem.Weak:              0
+    $base$System.Posix.Internals:       0
+    $base$System.Posix.Types:           0
+    $base$System.Timeout:               0
+    $base$Text.ParserCombinators.ReadP: 0
+    $base$Text.ParserCombinators.ReadPrec:0
+    $base$Text.Printf:                  132487
+    $base$Text.Read:                    0
+    $base$Text.Read.Lex:                0
+    $base$Text.Show:                    0
+    $base$Text.Show.Functions:          0
+    $base$Type.Reflection:              0
+    $base$Type.Reflection.Unsafe:       0
+    $base$Unsafe.Coerce:                0
+
+    $bytestring-0.12.1.0-inplace$Data.ByteString:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.ASCII:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.Extra:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.Internal:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.Prim:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.Prim.ASCII:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.Prim.Binary:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.Prim.Internal:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.Prim.Internal.Base16:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.Prim.Internal.Floating:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.RealFloat:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.RealFloat.D2S:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.RealFloat.F2S:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.RealFloat.Internal:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Builder.RealFloat.TableGenerator:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Char8:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Internal:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Internal.Pure:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Internal.Type:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Lazy:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Lazy.Char8:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Lazy.Internal:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Lazy.ReadInt:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Lazy.ReadNat:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.ReadInt:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.ReadNat:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Short:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Short.Internal:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Unsafe:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Utils.ByteOrder:0
+    $bytestring-0.12.1.0-inplace$Data.ByteString.Utils.UnalignedAccess:0
+
+    $call-stack-0.4.0-a2d34cd8e2d3266d4866d5d1907f896d5c52e64a8a73d36869066fae6a7c101e$Data.CallStack:611
+    $call-stack-0.4.0-a2d34cd8e2d3266d4866d5d1907f896d5c52e64a8a73d36869066fae6a7c101e$Data.SrcLoc:0
+    $call-stack-0.4.0-a2d34cd8e2d3266d4866d5d1907f896d5c52e64a8a73d36869066fae6a7c101e$Paths_call_stack:0
+
+    $containers-0.7-inplace$Data.Containers.ListUtils:0
+    $containers-0.7-inplace$Data.Graph: 0
+    $containers-0.7-inplace$Data.IntMap:0
+    $containers-0.7-inplace$Data.IntMap.Internal:0
+    $containers-0.7-inplace$Data.IntMap.Internal.Debug:0
+    $containers-0.7-inplace$Data.IntMap.Internal.DeprecatedDebug:0
+    $containers-0.7-inplace$Data.IntMap.Lazy:0
+    $containers-0.7-inplace$Data.IntMap.Merge.Lazy:0
+    $containers-0.7-inplace$Data.IntMap.Merge.Strict:0
+    $containers-0.7-inplace$Data.IntMap.Strict:0
+    $containers-0.7-inplace$Data.IntMap.Strict.Internal:0
+    $containers-0.7-inplace$Data.IntSet:0
+    $containers-0.7-inplace$Data.IntSet.Internal:0
+    $containers-0.7-inplace$Data.Map:   0
+    $containers-0.7-inplace$Data.Map.Internal:98539
+    $containers-0.7-inplace$Data.Map.Internal.Debug:0
+    $containers-0.7-inplace$Data.Map.Internal.DeprecatedShowTree:0
+    $containers-0.7-inplace$Data.Map.Lazy:0
+    $containers-0.7-inplace$Data.Map.Merge.Lazy:0
+    $containers-0.7-inplace$Data.Map.Merge.Strict:0
+    $containers-0.7-inplace$Data.Map.Strict:0
+    $containers-0.7-inplace$Data.Map.Strict.Internal:21066
+    $containers-0.7-inplace$Data.Sequence:0
+    $containers-0.7-inplace$Data.Sequence.Internal:0
+    $containers-0.7-inplace$Data.Sequence.Internal.Sorting:0
+    $containers-0.7-inplace$Data.Set:   0
+    $containers-0.7-inplace$Data.Set.Internal:103892
+    $containers-0.7-inplace$Data.Tree:  0
+    $containers-0.7-inplace$Utils.Containers.Internal.BitQueue:0
+    $containers-0.7-inplace$Utils.Containers.Internal.BitUtil:0
+    $containers-0.7-inplace$Utils.Containers.Internal.Coercions:0
+    $containers-0.7-inplace$Utils.Containers.Internal.Prelude:0
+    $containers-0.7-inplace$Utils.Containers.Internal.PtrEquality:0
+    $containers-0.7-inplace$Utils.Containers.Internal.State:0
+    $containers-0.7-inplace$Utils.Containers.Internal.StrictMaybe:0
+    $containers-0.7-inplace$Utils.Containers.Internal.StrictPair:0
+    $containers-0.7-inplace$Utils.Containers.Internal.TypeError:0
+
+    $deepseq-1.5.0.0-inplace$Control.DeepSeq:0
+
+    $ghc-bignum$GHC.Num.Backend:        0
+    $ghc-bignum$GHC.Num.Backend.Native: 14818
+    $ghc-bignum$GHC.Num.Backend.Selected:0
+    $ghc-bignum$GHC.Num.BigNat:         55683
+    $ghc-bignum$GHC.Num.Integer:        74969
+    $ghc-bignum$GHC.Num.Natural:        0
+    $ghc-bignum$GHC.Num.Primitives:     0
+    $ghc-bignum$GHC.Num.WordArray:      4286
+
+    $ghc-boot-th-9.10.0.20240413-inplace$GHC.ForeignSrcLang.Type:0
+    $ghc-boot-th-9.10.0.20240413-inplace$GHC.LanguageExtensions.Type:0
+    $ghc-boot-th-9.10.0.20240413-inplace$GHC.Lexeme:0
+
+    $ghc-internal$GHC.Internal.Arr:     1909
+    $ghc-internal$GHC.Internal.ArrayArray:0
+    $ghc-internal$GHC.Internal.Base:    26368
+    $ghc-internal$GHC.Internal.Bits:    0
+    $ghc-internal$GHC.Internal.ByteOrder:0
+    $ghc-internal$GHC.Internal.Char:    604
+    $ghc-internal$GHC.Internal.Clock:   0
+    $ghc-internal$GHC.Internal.ClosureTypes:2932
+    $ghc-internal$GHC.Internal.Conc.Bound:0
+    $ghc-internal$GHC.Internal.Conc.IO: 0
+    $ghc-internal$GHC.Internal.Conc.Signal:0
+    $ghc-internal$GHC.Internal.Conc.Sync:4832
+    $ghc-internal$GHC.Internal.ConsoleHandler:0
+    $ghc-internal$GHC.Internal.Constants:0
+    $ghc-internal$GHC.Internal.Control.Arrow:0
+    $ghc-internal$GHC.Internal.Control.Category:0
+    $ghc-internal$GHC.Internal.Control.Concurrent.MVar:0
+    $ghc-internal$GHC.Internal.Control.Exception:2919
+    $ghc-internal$GHC.Internal.Control.Exception.Base:8281
+    $ghc-internal$GHC.Internal.Control.Monad:597
+    $ghc-internal$GHC.Internal.Control.Monad.Fail:0
+    $ghc-internal$GHC.Internal.Control.Monad.Fix:0
+    $ghc-internal$GHC.Internal.Control.Monad.ST:0
+    $ghc-internal$GHC.Internal.Control.Monad.ST.Imp:0
+    $ghc-internal$GHC.Internal.Control.Monad.ST.Lazy:0
+    $ghc-internal$GHC.Internal.Control.Monad.ST.Lazy.Imp:0
+    $ghc-internal$GHC.Internal.Data.Bits:0
+    $ghc-internal$GHC.Internal.Data.Bool:0
+    $ghc-internal$GHC.Internal.Data.Coerce:0
+    $ghc-internal$GHC.Internal.Data.Data:0
+    $ghc-internal$GHC.Internal.Data.Dynamic:0
+    $ghc-internal$GHC.Internal.Data.Either:11088
+    $ghc-internal$GHC.Internal.Data.Enum:0
+    $ghc-internal$GHC.Internal.Data.Eq: 0
+    $ghc-internal$GHC.Internal.Data.Foldable:13981
+    $ghc-internal$GHC.Internal.Data.Function:0
+    $ghc-internal$GHC.Internal.Data.Functor:496
+    $ghc-internal$GHC.Internal.Data.Functor.Const:0
+    $ghc-internal$GHC.Internal.Data.Functor.Identity:1475
+    $ghc-internal$GHC.Internal.Data.Functor.Utils:0
+    $ghc-internal$GHC.Internal.Data.IORef:0
+    $ghc-internal$GHC.Internal.Data.Ix: 0
+    $ghc-internal$GHC.Internal.Data.List:0
+    $ghc-internal$GHC.Internal.Data.Maybe:1797
+    $ghc-internal$GHC.Internal.Data.Monoid:0
+    $ghc-internal$GHC.Internal.Data.OldList:21149
+    $ghc-internal$GHC.Internal.Data.Ord:0
+    $ghc-internal$GHC.Internal.Data.Proxy:0
+    $ghc-internal$GHC.Internal.Data.STRef:0
+    $ghc-internal$GHC.Internal.Data.STRef.Strict:0
+    $ghc-internal$GHC.Internal.Data.Semigroup.Internal:5821
+    $ghc-internal$GHC.Internal.Data.String:0
+    $ghc-internal$GHC.Internal.Data.Traversable:5586
+    $ghc-internal$GHC.Internal.Data.Tuple:587
+    $ghc-internal$GHC.Internal.Data.Type.Bool:0
+    $ghc-internal$GHC.Internal.Data.Type.Coercion:0
+    $ghc-internal$GHC.Internal.Data.Type.Equality:0
+    $ghc-internal$GHC.Internal.Data.Type.Ord:0
+    $ghc-internal$GHC.Internal.Data.Typeable:0
+    $ghc-internal$GHC.Internal.Data.Typeable.Internal:107125
+    $ghc-internal$GHC.Internal.Data.Unique:0
+    $ghc-internal$GHC.Internal.Data.Version:0
+    $ghc-internal$GHC.Internal.Data.Void:0
+    $ghc-internal$GHC.Internal.Debug.Trace:0
+    $ghc-internal$GHC.Internal.Desugar: 0
+    $ghc-internal$GHC.Internal.Encoding.UTF8:0
+    $ghc-internal$GHC.Internal.Enum:    17131
+    $ghc-internal$GHC.Internal.Environment:0
+    $ghc-internal$GHC.Internal.Err:     619
+    $ghc-internal$GHC.Internal.Event:   0
+    $ghc-internal$GHC.Internal.Event.Arr:0
+    $ghc-internal$GHC.Internal.Event.Array:0
+    $ghc-internal$GHC.Internal.Event.Control:0
+    $ghc-internal$GHC.Internal.Event.EPoll:0
+    $ghc-internal$GHC.Internal.Event.IntTable:0
+    $ghc-internal$GHC.Internal.Event.IntVar:0
+    $ghc-internal$GHC.Internal.Event.Internal:0
+    $ghc-internal$GHC.Internal.Event.Internal.Types:0
+    $ghc-internal$GHC.Internal.Event.KQueue:0
+    $ghc-internal$GHC.Internal.Event.Manager:0
+    $ghc-internal$GHC.Internal.Event.PSQ:0
+    $ghc-internal$GHC.Internal.Event.Poll:0
+    $ghc-internal$GHC.Internal.Event.Thread:0
+    $ghc-internal$GHC.Internal.Event.TimeOut:0
+    $ghc-internal$GHC.Internal.Event.TimerManager:0
+    $ghc-internal$GHC.Internal.Event.Unique:0
+    $ghc-internal$GHC.Internal.Exception:13947
+    $ghc-internal$GHC.Internal.Exception.Backtrace:16304
+    $ghc-internal$GHC.Internal.Exception.Context:1226
+    $ghc-internal$GHC.Internal.Exception.Type:12950
+    $ghc-internal$GHC.Internal.ExecutionStack:0
+    $ghc-internal$GHC.Internal.ExecutionStack.Internal:18692
+    $ghc-internal$GHC.Internal.Exts:    0
+    $ghc-internal$GHC.Internal.Fingerprint:10030
+    $ghc-internal$GHC.Internal.Fingerprint.Type:839
+    $ghc-internal$GHC.Internal.Float:   217540
+    $ghc-internal$GHC.Internal.Float.ConversionUtils:1290
+    $ghc-internal$GHC.Internal.Float.RealFracMethods:0
+    $ghc-internal$GHC.Internal.Foreign.C.ConstPtr:0
+    $ghc-internal$GHC.Internal.Foreign.C.Error:11089
+    $ghc-internal$GHC.Internal.Foreign.C.String:0
+    $ghc-internal$GHC.Internal.Foreign.C.String.Encoding:20239
+    $ghc-internal$GHC.Internal.Foreign.C.Types:0
+    $ghc-internal$GHC.Internal.Foreign.Concurrent:0
+    $ghc-internal$GHC.Internal.Foreign.ForeignPtr:0
+    $ghc-internal$GHC.Internal.Foreign.ForeignPtr.Imp:0
+    $ghc-internal$GHC.Internal.Foreign.ForeignPtr.Unsafe:0
+    $ghc-internal$GHC.Internal.Foreign.Marshal.Alloc:3056
+    $ghc-internal$GHC.Internal.Foreign.Marshal.Array:0
+    $ghc-internal$GHC.Internal.Foreign.Marshal.Error:0
+    $ghc-internal$GHC.Internal.Foreign.Marshal.Pool:0
+    $ghc-internal$GHC.Internal.Foreign.Marshal.Safe:0
+    $ghc-internal$GHC.Internal.Foreign.Marshal.Unsafe:0
+    $ghc-internal$GHC.Internal.Foreign.Marshal.Utils:0
+    $ghc-internal$GHC.Internal.Foreign.Ptr:0
+    $ghc-internal$GHC.Internal.Foreign.StablePtr:0
+    $ghc-internal$GHC.Internal.Foreign.Storable:974
+    $ghc-internal$GHC.Internal.ForeignPtr:6422
+    $ghc-internal$GHC.Internal.Functor.ZipList:0
+    $ghc-internal$GHC.Internal.GHCi:    0
+    $ghc-internal$GHC.Internal.GHCi.Helpers:0
+    $ghc-internal$GHC.Internal.Generics:0
+    $ghc-internal$GHC.Internal.IO:      6182
+    $ghc-internal$GHC.Internal.IO.Buffer:1683
+    $ghc-internal$GHC.Internal.IO.BufferedIO:1037
+    $ghc-internal$GHC.Internal.IO.Device:2093
+    $ghc-internal$GHC.Internal.IO.Encoding:1341
+    $ghc-internal$GHC.Internal.IO.Encoding.CodePage:0
+    $ghc-internal$GHC.Internal.IO.Encoding.Failure:3757
+    $ghc-internal$GHC.Internal.IO.Encoding.Iconv:0
+    $ghc-internal$GHC.Internal.IO.Encoding.Latin1:0
+    $ghc-internal$GHC.Internal.IO.Encoding.Types:1251
+    $ghc-internal$GHC.Internal.IO.Encoding.UTF16:0
+    $ghc-internal$GHC.Internal.IO.Encoding.UTF32:0
+    $ghc-internal$GHC.Internal.IO.Encoding.UTF8:33129
+    $ghc-internal$GHC.Internal.IO.Exception:37976
+    $ghc-internal$GHC.Internal.IO.FD:   43655
+    $ghc-internal$GHC.Internal.IO.Handle:17091
+    $ghc-internal$GHC.Internal.IO.Handle.FD:7320
+    $ghc-internal$GHC.Internal.IO.Handle.Internals:41002
+    $ghc-internal$GHC.Internal.IO.Handle.Lock:0
+    $ghc-internal$GHC.Internal.IO.Handle.Lock.Common:0
+    $ghc-internal$GHC.Internal.IO.Handle.Lock.Flock:0
+    $ghc-internal$GHC.Internal.IO.Handle.Lock.LinuxOFD:0
+    $ghc-internal$GHC.Internal.IO.Handle.Lock.NoOp:0
+    $ghc-internal$GHC.Internal.IO.Handle.Lock.Windows:0
+    $ghc-internal$GHC.Internal.IO.Handle.Text:47414
+    $ghc-internal$GHC.Internal.IO.Handle.Types:4940
+    $ghc-internal$GHC.Internal.IO.IOMode:0
+    $ghc-internal$GHC.Internal.IO.StdHandles:112
+    $ghc-internal$GHC.Internal.IO.SubSystem:0
+    $ghc-internal$GHC.Internal.IO.Unsafe:335
+    $ghc-internal$GHC.Internal.IOArray: 0
+    $ghc-internal$GHC.Internal.IOPort:  0
+    $ghc-internal$GHC.Internal.IORef:   0
+    $ghc-internal$GHC.Internal.InfoProv:0
+    $ghc-internal$GHC.Internal.InfoProv.Types:8303
+    $ghc-internal$GHC.Internal.Int:     723
+    $ghc-internal$GHC.Internal.Integer: 0
+    $ghc-internal$GHC.Internal.Integer.Logarithms:0
+    $ghc-internal$GHC.Internal.IsList:  0
+    $ghc-internal$GHC.Internal.Ix:      2634
+    $ghc-internal$GHC.Internal.JS.Foreign.Callback:0
+    $ghc-internal$GHC.Internal.JS.Prim: 12449
+    $ghc-internal$GHC.Internal.JS.Prim.Internal:4328
+    $ghc-internal$GHC.Internal.JS.Prim.Internal.Build:0
+    $ghc-internal$GHC.Internal.List:    29230
+    $ghc-internal$GHC.Internal.MVar:    0
+    $ghc-internal$GHC.Internal.Maybe:   3215
+    $ghc-internal$GHC.Internal.Natural: 0
+    $ghc-internal$GHC.Internal.Num:     3824
+    $ghc-internal$GHC.Internal.Numeric: 5764
+    $ghc-internal$GHC.Internal.Numeric.Natural:0
+    $ghc-internal$GHC.Internal.OverloadedLabels:0
+    $ghc-internal$GHC.Internal.Pack:    0
+    $ghc-internal$GHC.Internal.Profiling:0
+    $ghc-internal$GHC.Internal.Ptr:     241
+    $ghc-internal$GHC.Internal.RTS.Flags:0
+    $ghc-internal$GHC.Internal.Read:    18250
+    $ghc-internal$GHC.Internal.Real:    28917
+    $ghc-internal$GHC.Internal.Records: 0
+    $ghc-internal$GHC.Internal.ResponseFile:0
+    $ghc-internal$GHC.Internal.ST:      0
+    $ghc-internal$GHC.Internal.STRef:   239
+    $ghc-internal$GHC.Internal.Show:    57152
+    $ghc-internal$GHC.Internal.Stable:  0
+    $ghc-internal$GHC.Internal.StableName:0
+    $ghc-internal$GHC.Internal.Stack:   5002
+    $ghc-internal$GHC.Internal.Stack.CCS:4781
+    $ghc-internal$GHC.Internal.Stack.CloneStack:3887
+    $ghc-internal$GHC.Internal.Stack.Types:2271
+    $ghc-internal$GHC.Internal.StaticPtr:0
+    $ghc-internal$GHC.Internal.StaticPtr.Internal:0
+    $ghc-internal$GHC.Internal.Stats:   0
+    $ghc-internal$GHC.Internal.Storable:0
+    $ghc-internal$GHC.Internal.System.Environment:0
+    $ghc-internal$GHC.Internal.System.Environment.Blank:0
+    $ghc-internal$GHC.Internal.System.Environment.ExecutablePath:0
+    $ghc-internal$GHC.Internal.System.Exit:0
+    $ghc-internal$GHC.Internal.System.IO:596
+    $ghc-internal$GHC.Internal.System.IO.Error:0
+    $ghc-internal$GHC.Internal.System.Mem:0
+    $ghc-internal$GHC.Internal.System.Mem.StableName:0
+    $ghc-internal$GHC.Internal.System.Posix.Internals:18657
+    $ghc-internal$GHC.Internal.System.Posix.Types:0
+    $ghc-internal$GHC.Internal.Text.ParserCombinators.ReadP:32586
+    $ghc-internal$GHC.Internal.Text.ParserCombinators.ReadPrec:0
+    $ghc-internal$GHC.Internal.Text.Read:3869
+    $ghc-internal$GHC.Internal.Text.Read.Lex:116195
+    $ghc-internal$GHC.Internal.Text.Show:0
+    $ghc-internal$GHC.Internal.TopHandler:18803
+    $ghc-internal$GHC.Internal.Type.Reflection:0
+    $ghc-internal$GHC.Internal.Type.Reflection.Unsafe:0
+    $ghc-internal$GHC.Internal.TypeError:0
+    $ghc-internal$GHC.Internal.TypeLits:0
+    $ghc-internal$GHC.Internal.TypeLits.Internal:0
+    $ghc-internal$GHC.Internal.TypeNats:0
+    $ghc-internal$GHC.Internal.TypeNats.Internal:0
+    $ghc-internal$GHC.Internal.Unicode: 6988
+    $ghc-internal$GHC.Internal.Unicode.Bits:0
+    $ghc-internal$GHC.Internal.Unicode.Char.DerivedCoreProperties:0
+    $ghc-internal$GHC.Internal.Unicode.Char.UnicodeData.GeneralCategory:347
+    $ghc-internal$GHC.Internal.Unicode.Char.UnicodeData.SimpleLowerCaseMapping:45234
+    $ghc-internal$GHC.Internal.Unicode.Char.UnicodeData.SimpleTitleCaseMapping:0
+    $ghc-internal$GHC.Internal.Unicode.Char.UnicodeData.SimpleUpperCaseMapping:46193
+    $ghc-internal$GHC.Internal.Unicode.Version:0
+    $ghc-internal$GHC.Internal.Unsafe.Coerce:0
+    $ghc-internal$GHC.Internal.Weak:    0
+    $ghc-internal$GHC.Internal.Weak.Finalize:518
+    $ghc-internal$GHC.Internal.Word:    776
+
+    $ghc-prim$GHC.CString:              5014
+    $ghc-prim$GHC.Classes:              30377
+    $ghc-prim$GHC.Debug:                0
+    $ghc-prim$GHC.Magic:                0
+    $ghc-prim$GHC.Magic.Dict:           0
+    $ghc-prim$GHC.Prim.Exception:       334
+    $ghc-prim$GHC.Prim.Ext:             0
+    $ghc-prim$GHC.Prim.Panic:           0
+    $ghc-prim$GHC.Prim.PtrEq:           0
+    $ghc-prim$GHC.PrimopWrappers:       0
+    $ghc-prim$GHC.Tuple:                2389
+    $ghc-prim$GHC.Types:                4277
+
+    $mtl-2.3.1-inplace$Control.Monad.Accum:0
+    $mtl-2.3.1-inplace$Control.Monad.Cont:0
+    $mtl-2.3.1-inplace$Control.Monad.Cont.Class:0
+    $mtl-2.3.1-inplace$Control.Monad.Error.Class:1643
+    $mtl-2.3.1-inplace$Control.Monad.Except:0
+    $mtl-2.3.1-inplace$Control.Monad.Identity:0
+    $mtl-2.3.1-inplace$Control.Monad.RWS:0
+    $mtl-2.3.1-inplace$Control.Monad.RWS.CPS:0
+    $mtl-2.3.1-inplace$Control.Monad.RWS.Class:0
+    $mtl-2.3.1-inplace$Control.Monad.RWS.Lazy:0
+    $mtl-2.3.1-inplace$Control.Monad.RWS.Strict:0
+    $mtl-2.3.1-inplace$Control.Monad.Reader:0
+    $mtl-2.3.1-inplace$Control.Monad.Reader.Class:0
+    $mtl-2.3.1-inplace$Control.Monad.Select:0
+    $mtl-2.3.1-inplace$Control.Monad.State:0
+    $mtl-2.3.1-inplace$Control.Monad.State.Class:6703
+    $mtl-2.3.1-inplace$Control.Monad.State.Lazy:0
+    $mtl-2.3.1-inplace$Control.Monad.State.Strict:0
+    $mtl-2.3.1-inplace$Control.Monad.Trans:0
+    $mtl-2.3.1-inplace$Control.Monad.Writer:0
+    $mtl-2.3.1-inplace$Control.Monad.Writer.CPS:0
+    $mtl-2.3.1-inplace$Control.Monad.Writer.Class:0
+    $mtl-2.3.1-inplace$Control.Monad.Writer.Lazy:0
+    $mtl-2.3.1-inplace$Control.Monad.Writer.Strict:0
+
+    $pretty-1.1.3.6-inplace$Text.PrettyPrint:0
+    $pretty-1.1.3.6-inplace$Text.PrettyPrint.Annotated:0
+    $pretty-1.1.3.6-inplace$Text.PrettyPrint.Annotated.HughesPJ:106682
+    $pretty-1.1.3.6-inplace$Text.PrettyPrint.Annotated.HughesPJClass:0
+    $pretty-1.1.3.6-inplace$Text.PrettyPrint.HughesPJ:24935
+    $pretty-1.1.3.6-inplace$Text.PrettyPrint.HughesPJClass:0
+
+    $puzzleSolver-0.1.0.0-inplace$Parser:0
+    $puzzleSolver-0.1.0.0-inplace$PuzzleCLI:0
+    $puzzleSolver-0.1.0.0-inplace$PuzzleEvaluator:0
+    $puzzleSolver-0.1.0.0-inplace$PuzzleParser:0
+    $puzzleSolver-0.1.0.0-inplace$PuzzlePrinter:0
+    $puzzleSolver-0.1.0.0-inplace$PuzzleSolver:0
+    $puzzleSolver-0.1.0.0-inplace$PuzzleSyntax:0
+
+    $puzzleSolver-0.1.0.0-inplace-puzzleSolver$Main:1388
+    $puzzleSolver-0.1.0.0-inplace-puzzleSolver$Parser:33018
+    $puzzleSolver-0.1.0.0-inplace-puzzleSolver$PuzzleCLI:51883
+    $puzzleSolver-0.1.0.0-inplace-puzzleSolver$PuzzleEvaluator:447181
+    $puzzleSolver-0.1.0.0-inplace-puzzleSolver$PuzzleParser:238521
+    $puzzleSolver-0.1.0.0-inplace-puzzleSolver$PuzzlePrinter:74466
+    $puzzleSolver-0.1.0.0-inplace-puzzleSolver$PuzzleSolver:131271
+    $puzzleSolver-0.1.0.0-inplace-puzzleSolver$PuzzleSyntax:180916
+
+    $random-1.3.1-1f11f3ccc12fdf2e7886f60614a48e9a46c6cc1ca724c0881f8fe189d811c6f4$System.Random:7970
+    $random-1.3.1-1f11f3ccc12fdf2e7886f60614a48e9a46c6cc1ca724c0881f8fe189d811c6f4$System.Random.Array:0
+    $random-1.3.1-1f11f3ccc12fdf2e7886f60614a48e9a46c6cc1ca724c0881f8fe189d811c6f4$System.Random.GFinite:0
+    $random-1.3.1-1f11f3ccc12fdf2e7886f60614a48e9a46c6cc1ca724c0881f8fe189d811c6f4$System.Random.Internal:3941
+    $random-1.3.1-1f11f3ccc12fdf2e7886f60614a48e9a46c6cc1ca724c0881f8fe189d811c6f4$System.Random.Seed:0
+    $random-1.3.1-1f11f3ccc12fdf2e7886f60614a48e9a46c6cc1ca724c0881f8fe189d811c6f4$System.Random.Stateful:0
+
+    $splitmix-0.1.3.2-effa441e356f54207d03876ad450c3ea73cb72e84c1ac6087445b5ca2839b7df$System.Random.SplitMix:10497
+    $splitmix-0.1.3.2-effa441e356f54207d03876ad450c3ea73cb72e84c1ac6087445b5ca2839b7df$System.Random.SplitMix.Init:0
+    $splitmix-0.1.3.2-effa441e356f54207d03876ad450c3ea73cb72e84c1ac6087445b5ca2839b7df$System.Random.SplitMix32:0
+
+    $template-haskell$Language.Haskell.TH:0
+    $template-haskell$Language.Haskell.TH.CodeDo:0
+    $template-haskell$Language.Haskell.TH.LanguageExtensions:0
+    $template-haskell$Language.Haskell.TH.Lib:0
+    $template-haskell$Language.Haskell.TH.Lib.Internal:0
+    $template-haskell$Language.Haskell.TH.Lib.Map:0
+    $template-haskell$Language.Haskell.TH.Ppr:0
+    $template-haskell$Language.Haskell.TH.PprLib:0
+    $template-haskell$Language.Haskell.TH.Quote:0
+    $template-haskell$Language.Haskell.TH.Syntax:0
+    $template-haskell$System.FilePath:  0
+    $template-haskell$System.FilePath.Posix:0
+    $template-haskell$System.FilePath.Windows:0
+
+    $transformers-0.6.1.1-inplace$Control.Applicative.Backwards:0
+    $transformers-0.6.1.1-inplace$Control.Applicative.Lift:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Signatures:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Accum:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Class:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Cont:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Except:12366
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Identity:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Maybe:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.RWS:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.RWS.CPS:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.RWS.Lazy:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.RWS.Strict:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Reader:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Select:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.State:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.State.Lazy:11750
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.State.Strict:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Writer:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Writer.CPS:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Writer.Lazy:0
+    $transformers-0.6.1.1-inplace$Control.Monad.Trans.Writer.Strict:0
+    $transformers-0.6.1.1-inplace$Data.Functor.Constant:0
+    $transformers-0.6.1.1-inplace$Data.Functor.Reverse:0
+
+
+

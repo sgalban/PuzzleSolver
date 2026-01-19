@@ -1,3 +1,6 @@
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE JavaScriptFFI #-}
+
 -- | A small, applicative-based parsing library
 -- NOTE: this library does not export the `P` data constructor.
 -- All `Parser`s must be built using the following functions
@@ -19,6 +22,7 @@ import qualified System.IO.Error as IO
 import Control.Monad (guard)
 import Data.Foldable (asum)
 import Text.Read(readMaybe)
+import GHC.JS.Prim (JSVal, toJSString, fromJSString, isNull)
 
 
 -- definition of the parser type
@@ -99,19 +103,28 @@ parse parser str = case doParse parser str of
     Nothing    -> Left  "No parses"
     Just (a,_) -> Right a
 
+foreign import javascript
+  "((fn) => { return window.vfsReadFileWrapper(fn); })"
+  js_readJSFile :: JSVal -> IO JSVal
+
+readJSFile :: String -> IO (Either ParseError String)
+readJSFile fn = do
+  v <- js_readJSFile (toJSString fn)
+  if isNull v
+    then pure $ Left ("file not found: " ++ fn)
+    else pure $ Right (fromJSString v)
 
 -- | parseFromFile p filePath runs a string parser p on the input
 -- read from filePath using readFile. Returns either a
 -- ParseError (Left) or a value of type a (Right).
 parseFromFile :: Parser a -> String -> IO (Either ParseError a)
 parseFromFile parser filename = do
-  IO.catchIOError
-    (do
-        handle <- IO.openFile filename IO.ReadMode
-        str <- IO.hGetContents handle
-        pure $ parse parser str)
-    (\e ->
-        pure $ Left $ "Error:" ++ show e)
+  res <- readJSFile filename
+  case res of
+    Left err ->
+      pure (Left err)
+    Right str ->
+      pure (parse parser str)
     
 
 -- | Return the next character if it satisfies the given predicate
