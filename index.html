@@ -30,7 +30,17 @@
 <div id="terminal"></div>
 
 <script>
-    // ---- xterm setup ----
+    const preloadedFiles = [
+        "empty.pz",
+        "futoshiki.pz",
+        "kakuro-small.pz",
+        "kenken.pz",
+        "magicsquare.pz",
+        "sudoku-small.pz",
+        "sudoku-normal.pz"
+    ]
+
+    // Setup terminal
     const term = new Terminal({
         cursorBlink: true,
         convertEol: true
@@ -46,6 +56,7 @@
 
     term.writeln("PuzzleSolver v0.1.0.1");
     term.writeln("Authored by Steven Galban and Quynh Anh Huynh for CIS 5520 at the University of Pennsylvania");
+    term.writeln(`Pre-uploading samples: ${preloadedFiles.join(", ")}`)
     term.writeln("Type 'help' for commands.");
     term.writeln("");
 
@@ -60,25 +71,16 @@
     };
 
     term.attachCustomKeyEventHandler((e) => {
-    // Block vertical cursor movement entirely
-    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-        return false;
-    }
-
-    // Block horizontal navigation keys
-    if (
-        e.key === "ArrowLeft" ||
-        e.key === "ArrowRight" ||
-        e.key === "Home" ||
-        e.key === "End" ||
-        e.key === "PageUp" ||
-        e.key === "PageDown"
-    ) {
-        return false;
-    }
-
-    return true;
-});
+        // Block cursor movement entirely
+        return !(
+            e.key === "ArrowLeft" ||
+            e.key === "ArrowRight" ||
+            e.key === "Home" ||
+            e.key === "End" ||
+            e.key === "PageUp" ||
+            e.key === "PageDown"
+        );
+    });
 
     term.onData((data) => {
         if (!pendingCallback) {
@@ -109,14 +111,11 @@
         }
     });
 
-    (function() {
-        console.log = function(...args) {
-            args.forEach(arg => term.write(String(arg)));
-        };
-    })();
-</script>
+    console.log = function(...args) {
+        args.forEach(arg => term.write(String(arg)));
+    };
 
-<script>
+    // Establish "virtual file system" (it's just a Map)
     window.vfs = new Map()
     window.haskellUploadFile = function(cb) {
         const input = document.getElementById("fileInput")
@@ -126,7 +125,7 @@
             reader.onload = () => {
                 window.vfs = window.vfs || new Map();
                 window.vfs.set(file.name, reader.result);
-                cb(); // signal completion to Haskell
+                cb();
             };
             reader.readAsText(file);
         };
@@ -134,35 +133,31 @@
     };
 
     window.vfsReadFileWrapper = function(filename) {
-      const v = window.vfs.get(filename);
-      if (!v) {
-          return null
-      }
-      return v;
+        const v = window.vfs.get(filename);
+        if (!v) {
+            return null
+        }
+        return v;
     };
 
     async function preloadSample(name, url) {
         const resp = await fetch(url);
         if (!resp.ok) {
-          console.error("Failed to preload sample:", url);
-          return;
+            console.error("Failed to preload sample:", url);
+            return;
         }
         const text = await resp.text();
         window.vfs.set(name, text);
     }
 
     async function preloadSamples() {
-        await Promise.all([
-            preloadSample("empty.pz", "samples/empty.pz"),
-            preloadSample("futoshiki.pz", "samples/futoshiki.pz"),
-            preloadSample("kakuro-small.pz", "samples/kakuro-small.pz"),
-            preloadSample("kenken.pz", "samples/kenken.pz"),
-            preloadSample("magicsquare.pz", "samples/magicsquare.pz"),
-            preloadSample("sudoku-small.pz", "samples/sudoku-small.pz"),
-            preloadSample("sudoku-normal.pz", "samples/sudoku-normal.pz")
-        ]);
+        await Promise.all(preloadedFiles.map(s => preloadSample(s, `samples/${s}`)));
     }
     window.samplesReady = preloadSamples()
+</script>
+
+<script>
+
 </script>
 
 <script>
@@ -181,8 +176,6 @@
         };
     }
 </script>
-
-<!-- GHC JS output -->
 <script src="all.js"></script>
 <input id="fileInput" type="file" style="display:none" />
 </body>
